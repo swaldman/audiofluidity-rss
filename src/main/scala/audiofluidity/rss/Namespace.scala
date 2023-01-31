@@ -5,6 +5,8 @@ import scala.xml.{NamespaceBinding,TopScope}
 object Namespace:
   val RdfContent   = Namespace("content", "http://purl.org/rss/1.0/modules/content/")
   val ApplePodcast = Namespace("itunes", "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  val DublinCore   = Namespace("dc","http://purl.org/dc/elements/1.1/")
+  val Atom         = Namespace("atom","http://www.w3.org/2005/Atom")
 
   private def toBinding( parentScope : NamespaceBinding, list : List[Namespace] ) : NamespaceBinding =
     list match

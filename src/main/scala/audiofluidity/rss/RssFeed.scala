@@ -30,6 +30,7 @@ object RssFeed:
     skipHours          : Option[Element.SkipHours]       = None,
     skipDays           : Option[Element.SkipDays]        = None,
     channelDecorations : immutable.Seq[Elem]             = Nil,
+    rssElemPostProcess : Elem => Elem                    = identity,
     namespaces         : List[Namespace]                 = Nil
   )
 
@@ -55,6 +56,7 @@ object RssFeed:
       builder.skipHours,
       builder.skipDays,
       builder.channelDecorations,
+      builder.rssElemPostProcess,
       builder.namespaces
     )
 
@@ -79,6 +81,7 @@ object RssFeed:
     skipHours          : Option[Element.SkipHours]       = None,
     skipDays           : Option[Element.SkipDays]        = None,
     channelDecorations : immutable.Seq[Elem]             = Nil,
+    rssElemPostProcess : Elem => Elem                    = identity,
     namespaces         : List[Namespace]                 = Nil
   ) : RssFeed =
     val (items, itemsD) =
@@ -126,10 +129,10 @@ object RssFeed:
       items = items
     )
 
-    RssFeed( channel, channelDecorations = channelDecorations.toList, itemDecorations = itemsD, namespaces = namespaces )
+    RssFeed( channel, channelDecorations = channelDecorations.toList, itemDecorations = itemsD, rssElemPostProcess = rssElemPostProcess, namespaces = namespaces )
 
 
-case class RssFeed( channel : Channel, channelDecorations : immutable.Seq[Elem], itemDecorations : immutable.Seq[immutable.Seq[Elem]], namespaces : List[Namespace] ):
+case class RssFeed( channel : Channel, channelDecorations : immutable.Seq[Elem], itemDecorations : immutable.Seq[immutable.Seq[Elem]], rssElemPostProcess : Elem => Elem, namespaces : List[Namespace] ):
 
   // we use a val rather than a def or lazy val so we effectively validate itemDecoration length on construction
   // it's rare one would build an RssFeed without intending to generate the Xml
@@ -162,7 +165,8 @@ case class RssFeed( channel : Channel, channelDecorations : immutable.Seq[Elem],
         case elem : Elem if elem.prefix == null && elem.label == "channel" => decoratedChannelElem
         case other => other
       }
-    RssFeed.EmptyChannelRssElem.copy(scope=Namespace.toBinding(namespaces),child=decoratedRssChildren)
+    val rssElem = RssFeed.EmptyChannelRssElem.copy(scope=Namespace.toBinding(namespaces),child=decoratedRssChildren)
+    rssElemPostProcess(rssElem)
 
   lazy val asXmlText : String =
     val pp = new PrettyPrinter(80,2)
