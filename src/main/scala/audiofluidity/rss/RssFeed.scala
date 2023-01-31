@@ -10,6 +10,54 @@ object RssFeed:
   private val EmptyChannelRssElem =
     Element.Rss(channel = Channel(Element.Title(""),Element.Link(""),Element.Description(""), items=Nil)).toElem
 
+  case class Builder(
+    title              : String,
+    linkUrl            : String,
+    description        : String,
+    language           : Option[LanguageCode]            = None,
+    copyright          : Option[String]                  = None,
+    managingEditor     : Option[String]                  = None,
+    webmaster          : Option[String]                  = None,
+    pubDate            : Option[ZonedDateTime]           = None,
+    lastBuildDate      : Option[ZonedDateTime]           = None,
+    categories         : immutable.Seq[Element.Category] = Nil,
+    generator          : Option[String]                  = None,
+    cloud              : Option[Element.Cloud]           = None,
+    ttlMinutes         : Option[Int]                     = None,
+    image              : Option[Element.Image]           = None,
+    rating             : Option[String]                  = None,
+    textInput          : Option[Element.TextInput]       = None,
+    skipHours          : Option[Element.SkipHours]       = None,
+    skipDays           : Option[Element.SkipDays]        = None,
+    channelDecorations : immutable.Seq[Elem]             = Nil,
+    namespaces         : List[Namespace]                 = Nil
+  )
+
+  def create[T : Itemable]( builder : Builder, itemSources : immutable.Seq[T]) : RssFeed =
+    create[T](
+      builder.title,
+      builder.linkUrl,
+      builder.description,
+      itemSources,
+      builder.language,
+      builder.copyright,
+      builder.managingEditor,
+      builder.webmaster,
+      builder.pubDate,
+      builder.lastBuildDate,
+      builder.categories,
+      builder.generator,
+      builder.cloud,
+      builder.ttlMinutes,
+      builder.image,
+      builder.rating,
+      builder.textInput,
+      builder.skipHours,
+      builder.skipDays,
+      builder.channelDecorations,
+      builder.namespaces
+    )
+
   def create[T : Itemable] (
     title              : String,
     linkUrl            : String,
