@@ -169,6 +169,30 @@ object Xmlable:
   given Xmlable[Content.Encoded] with
     extension(x : Content.Encoded ) def toElem : Elem = new Elem(prefix="content", label="encoded", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(x.text))
 
+  // Atom elements
+  given given_Xmlable_Atom_Link : Xmlable[Atom.Link] with
+    extension(al : Atom.Link) def toElem : Elem =
+      val attributeTups =
+        List(Tuple2("href", al.href)) ++
+          al.rel.map(rel => Tuple2("rel",rel.toString)) ++
+          al.`type`.map(tpe => Tuple2("type", tpe)) ++
+          al.hreflang.map(hl => Tuple2("hreflang", hl.rendered)) ++
+          al.title.map(t => Tuple2("title", t)) ++
+          al.length.map(l => Tuple2("length",l.toString))
+
+      val attributes = attributeTups.foldLeft(Null : MetaData){ (accum, next) =>
+        new UnprefixedAttribute(next(0),next(1), accum)
+      }
+      Elem(prefix="atom", label="link", attributes=attributes, scope=TopScope, minimizeEmpty=true )
+
+  // DublinCore elements
+  given Xmlable[DublinCore.Creator] with
+    extension(dcc : DublinCore.Creator) def toElem : Elem =
+      Elem(prefix="dc", label="creator", attributes=Null, scope=TopScope, minimizeEmpty=true, child=new PCData(dcc.creator) )
+
+
+
+
 trait Xmlable[T]:
   extension(x : T) def toElem : Elem
 

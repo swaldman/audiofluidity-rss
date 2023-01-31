@@ -87,7 +87,8 @@ object RssFeed:
     val (items, itemsD) =
       val (itemsReversed, itemsDReversed ) =
         itemSources.foldLeft( Tuple2(Nil : List[Item], Nil : List[immutable.Seq[Elem]]) ){ (accum, next) =>
-          ( next.toItem :: accum(0), next.itemDecorations :: accum(1) )
+          val itemWithDecorations = next.toItemWithDecorations
+          ( itemWithDecorations(0) :: accum(0), itemWithDecorations(1) :: accum(1) )
         }
       (itemsReversed.reverse, itemsDReversed.reverse)
 

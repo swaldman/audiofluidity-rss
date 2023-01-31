@@ -76,6 +76,31 @@ object Element:
     case class WebMaster(email : String)
     case class Width(pixels : Int)
 
+    object Atom:
+        enum LinkRelation:
+            case alternate, related, self, enclosure, via
+
+        // for now, probably forever
+        // see https://datatracker.ietf.org/doc/html/rfc3987
+        // via https://datatracker.ietf.org/doc/html/rfc4287#section-4.2.7.2
+        opaque type Iri = String
+        def toIri( s : String ) : Iri = s
+
+        case class Link(
+          href     : String,
+          rel      : Option[LinkRelation | Iri],
+          `type`   : Option[String],
+          hreflang : Option[LanguageCode],
+          title    : Option[String],
+          length   : Option[Long]
+        )
+
+    object Content:
+        case class Encoded(text : String)
+
+    object DublinCore:
+        case class Creator(creator : String)
+
     object Itunes:
         enum ValidPodcastType:
             case episodic, serial
@@ -102,8 +127,6 @@ object Element:
         case class  Title(title : String)
         case class  Type(validType : Itunes.ValidPodcastType)
 
-    object Content:
-        case class Encoded(text : String)
 
 end Element
 

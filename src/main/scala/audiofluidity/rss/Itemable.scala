@@ -6,7 +6,7 @@ import scala.xml.Elem
 object Itemable:
   given ItemsAreItemable : Itemable[Element.Item] with
     extension( item : Element.Item )
-      def toItem : Element.Item = item
+      def toItemWithDecorations : (Element.Item, immutable.Seq[Elem]) = (item, Nil)
 
 /**
  * Decorations are arbitrary XML elements that should be added as _children_
@@ -14,5 +14,4 @@ object Itemable:
  */
 trait Itemable[T]:
   extension( t : T )
-    def toItem : Element.Item
-    def itemDecorations : immutable.Seq[Elem] = Nil
+    def toItemWithDecorations : (Element.Item, immutable.Seq[Elem])

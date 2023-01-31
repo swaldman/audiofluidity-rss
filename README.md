@@ -14,3 +14,4 @@ bookmark some useful RSS resources:
 - [Excerpt from O'Reilly book by Ben Hammersley](https://www.oreilly.com/library/view/developing-feeds-with/0596008813/ch04s02.html)
 - [DublinCore (`dc`) specification](https://www.dublincore.org/specifications/dublin-core/dcmi-terms/)
 - [Podcast RSS resources at audiofluidity main](https://github.com/swaldman/audiofluidity#podcast-rss)
+- [Atom specification](https://datatracker.ietf.org/doc/html/rfc4287)
