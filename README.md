@@ -17,7 +17,7 @@ Maybe someday if there's interest.
 
 ## License
 
-_audiofluidity-rss_ was revised from a library internal to [audiofluidity](https://github.com/swaldman/audiofluidity),
+_audiofluidity-rss_ was revised from a library internal to [_audiofluidity_](https://github.com/swaldman/audiofluidity),
 a podcast-specific static-site generator.
 
 However, this library is now offered independently, under Apache 2.0 terms. Please see
