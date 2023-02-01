@@ -1,5 +1,6 @@
 package audiofluidity.rss
 
+/*
 import java.time.ZonedDateTime
 import scala.collection.*
 import scala.xml.{Elem,PrettyPrinter}
@@ -176,3 +177,4 @@ case class RssFeed( channel : Channel, channelDecorations : immutable.Seq[Elem],
 
   lazy val bytes : immutable.Seq[Byte] =
     immutable.ArraySeq.ofByte(asXmlText.getBytes(scala.io.Codec.UTF8.charSet))
+*/
