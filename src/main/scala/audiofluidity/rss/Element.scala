@@ -573,11 +573,13 @@ trait Element[T <: Element[T]]:
     @targetName("withExtraElements")
     def withExtras( elements : Iterable[Element[?]] ) : T = withExtras( elements.map(_.toElem) )
 
+    lazy val extras = reverseExtras.reverse
+
     def toUndecoratedElem : Elem
 
     def toElem : Elem =
         val simple = this.toUndecoratedElem
-        simple.copy(scope=Namespace.toBinding(this.namespaces), child=(simple.child.toList ::: this.reverseExtras.reverse))
+        simple.copy(scope=Namespace.toBinding(this.namespaces), child=(simple.child.toList ::: this.extras))
 
     def asXmlText(pp : PrettyPrinter = Element.DefaultPrettyPrinter, transformer : Node => Node = identity ) : String =
         val noXmlDeclarationPretty = pp.format(transformer(this.toElem))
