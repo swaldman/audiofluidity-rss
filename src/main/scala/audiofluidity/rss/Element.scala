@@ -1,8 +1,9 @@
 package audiofluidity.rss
 
+import audiofluidity.rss.Element.DefaultPrettyPrinter
+
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME
-
 import scala.collection.*
 import scala.xml.{Elem, MetaData, Node, Null, PCData, PrettyPrinter, Text, TopScope, UnprefixedAttribute}
 
@@ -11,6 +12,8 @@ object Element:
     val RssVersion = "2.0"
 
     private val RssDateTimeFormatter = RFC_1123_DATE_TIME
+
+    private val DefaultPrettyPrinter = new PrettyPrinter(80,2)
 
     private def elem(label : String, attributes1 : MetaData, children : Node*) : Elem =
         new Elem(prefix=null, label=label, attributes1=attributes1, scope=TopScope, minimizeEmpty=true, children : _*)
@@ -32,7 +35,7 @@ object Element:
             elem("category", new UnprefixedAttribute("domain", this.domain, Null), new Text(this.text))
 
     object Channel:
-          case class Builder(
+          case class Spec (
                 title              : String,
                 linkUrl            : String,
                 description        : String,
@@ -52,27 +55,27 @@ object Element:
                 skipHours          : Option[Element.SkipHours]       = None,
                 skipDays           : Option[Element.SkipDays]        = None,
           )
-          def create( builder : Builder, items : immutable.Seq[Item]) : Channel =
+          def create( spec : Spec, items : immutable.Seq[Item]) : Channel =
                 create(
-                      builder.title,
-                      builder.linkUrl,
-                      builder.description,
+                      spec.title,
+                      spec.linkUrl,
+                      spec.description,
                       items,
-                      builder.language,
-                      builder.copyright,
-                      builder.managingEditor,
-                      builder.webmaster,
-                      builder.pubDate,
-                      builder.lastBuildDate,
-                      builder.categories,
-                      builder.generator,
-                      builder.cloud,
-                      builder.ttlMinutes,
-                      builder.image,
-                      builder.rating,
-                      builder.textInput,
-                      builder.skipHours,
-                      builder.skipDays,
+                      spec.language,
+                      spec.copyright,
+                      spec.managingEditor,
+                      spec.webmaster,
+                      spec.pubDate,
+                      spec.lastBuildDate,
+                      spec.categories,
+                      spec.generator,
+                      spec.cloud,
+                      spec.ttlMinutes,
+                      spec.image,
+                      spec.rating,
+                      spec.textInput,
+                      spec.skipHours,
+                      spec.skipDays,
                 )
           def create (
                 title              : String,
@@ -160,12 +163,13 @@ object Element:
         override def withExtra(elem: Elem) = this.copy(reverseExtras = elem :: reverseExtras)
         override def toUndecoratedElem: Elem =
             val itemElems = this.items.map(_.toElem)
-            val kids =
-                itemElems ++ this.skipDays.map(_.toElem) ++ this.skipHours.map(_.toElem) ++ this.textInput.map(_.toElem) ++
-                  this.rating.map(_.toElem) ++ this.image.map(_.toElem) ++ this.ttl.map(_.toElem) ++ this.cloud.map(_.toElem) ++ this.docs.map(_.toElem) ++
-                  this.generator.map(_.toElem) ++ this.categories.map(_.toElem) ++ this.lastBuildDate.map(_.toElem) ++ this.pubDate.map(_.toElem) ++
-                  this.webMaster.map(_.toElem) ++ this.managingEditor.map(_.toElem) ++ this.copyright.map(_.toElem) ++ this.language.map(_.toElem) :+
-                  this.description.toElem :+ this.link.toElem :+ this.title.toElem
+            val kids : Vector[Elem] =
+                  (Vector.empty[Elem] :+ this.title.toElem :+ this.link.toElem :+ this.description.toElem) ++
+                  this.language.map(_.toElem) ++ this.copyright.map(_.toElem) ++ this.managingEditor.map(_.toElem) ++
+                  this.webMaster.map(_.toElem) ++ this.pubDate.map(_.toElem) ++ this.lastBuildDate.map(_.toElem) ++
+                  this.categories.map(_.toElem) ++ this.generator.map(_.toElem) ++ this.docs.map(_.toElem) ++
+                  this.cloud.map(_.toElem) ++ this.ttl.map(_.toElem) ++ this.image.map(_.toElem) ++ this.rating.map(_.toElem) ++
+                  this.textInput.map(_.toElem) ++ this.skipHours.map(_.toElem) ++ this.skipDays.map(_.toElem) ++ itemElems
             elem("channel", kids : _*)
 
     case class Cloud(domain : String, port : Int, path : String, registerProcedure : String, protocol : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Elem] = Nil) extends Element[Cloud]:
@@ -398,13 +402,13 @@ object Element:
 
         case class Link(
           href     : String,
-          rel      : Option[LinkRelation | Iri],
-          `type`   : Option[String],
-          hreflang : Option[LanguageCode],
-          title    : Option[String],
-          length   : Option[Long],
-          namespaces : List[Namespace] = Nil,
-          reverseExtras : List[Elem] = Nil
+          rel      : Option[LinkRelation | Iri] = None,
+          `type`   : Option[String]             = None,
+          hreflang : Option[LanguageCode]       = None,
+          title    : Option[String]             = None,
+          length   : Option[Long]               = None,
+          namespaces : List[Namespace]          = Nil,
+          reverseExtras : List[Elem]            = Nil,
         ) extends Element[Link]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def withExtra(elem: Elem) = this.copy(reverseExtras = elem :: reverseExtras)
@@ -562,14 +566,14 @@ trait Element[T <: Element[T]]:
         val simple = this.toUndecoratedElem
         simple.copy(scope=Namespace.toBinding(this.namespaces), child=(simple.child.toList ::: this.reverseExtras.reverse))
 
-    def asXmlText( pp : PrettyPrinter, transformer : Node => Node = identity ) : String =
+    def asXmlText(pp : PrettyPrinter = Element.DefaultPrettyPrinter, transformer : Node => Node = identity ) : String =
         val noXmlDeclarationPretty = pp.format(transformer(this.toElem))
         s"<?xml version='1.0' encoding='UTF-8'?>\n${noXmlDeclarationPretty}"
 
-    def bytes( pp : PrettyPrinter, transformer : Node => Node = identity ) : immutable.Seq[Byte] =
+    def bytes( pp : PrettyPrinter = Element.DefaultPrettyPrinter, transformer : Node => Node = identity ) : immutable.Seq[Byte] =
         immutable.ArraySeq.ofByte(asXmlText(pp,transformer).getBytes(scala.io.Codec.UTF8.charSet))
 
-    lazy val asXmlText : String = asXmlText( new PrettyPrinter(120,2) )
+    lazy val asXmlText : String = asXmlText( Element.DefaultPrettyPrinter, identity )
 
     lazy val bytes : immutable.Seq[Byte] = immutable.ArraySeq.ofByte(asXmlText.getBytes(scala.io.Codec.UTF8.charSet))
 
