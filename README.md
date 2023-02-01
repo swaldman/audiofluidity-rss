@@ -40,4 +40,4 @@ bookmark some useful RSS resources:
 - [Podcast RSS resources at audiofluidity main](https://github.com/swaldman/audiofluidity#podcast-rss)
 - [Atom specification](https://datatracker.ietf.org/doc/html/rfc4287)
 
-See also the podcast-RSS resources in the main [audiofluidity README.md](https://github.com/swaldman/audiofluidity#developer-resources) 
+See also the podcast-centric RSS resource list in the main [audiofluidity README.md](https://github.com/swaldman/audiofluidity#developer-resources) 
