@@ -15,6 +15,15 @@ generates XML, it does not consume and parse it back.
 
 Maybe someday if there's interest.
 
+## License
+
+_audiofluidity-rss_ was revised from a library internal to [audiofluidity](https://github.com/swaldman/audiofluidity),
+a podcast-specific static-site generator.
+
+However, this library is now offered independently, under Apache 2.0 terms. Please see
+[LICENSE](LICENSE). (The main audiofluidity application is a GPLv3 project.)
+
+
 ## Some useful RSS resources
 
 More docs soon, I hope. But for now, I want to
