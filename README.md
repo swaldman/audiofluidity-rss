@@ -21,7 +21,9 @@ _audiofluidity-rss_ was revised from a library internal to [audiofluidity](https
 a podcast-specific static-site generator.
 
 However, this library is now offered independently, under Apache 2.0 terms. Please see
-[LICENSE](LICENSE). (The main audiofluidity application is a GPLv3 project.)
+[LICENSE](LICENSE).
+
+(The main _audiofluidity_ application is a GPLv3 project.)
 
 
 ## Some useful RSS resources
