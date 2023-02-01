@@ -339,7 +339,7 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("rating", new Text(this.contents))
 
-    case class Rss( version : String = RssVersion, channel : Channel, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Rss]:
+    case class Rss( channel : Channel, version : String = RssVersion, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Rss]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem =
