@@ -1,7 +1,5 @@
 package audiofluidity.rss
 
-import audiofluidity.rss.Element.DefaultPrettyPrinter
-
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME
 import scala.collection.*
@@ -14,7 +12,7 @@ object Element:
 
     private val RssDateTimeFormatter = RFC_1123_DATE_TIME
 
-    private val DefaultPrettyPrinter = new PrettyPrinter(80,2)
+    private val DefaultPrettyPrintSpec = PrettyPrintSpec( width = 120, step = 2, minimizeEmpty = true )
 
     private def elem(label : String, attributes1 : MetaData, children : Node*) : Elem =
         new Elem(prefix=null, label=label, attributes1=attributes1, scope=TopScope, minimizeEmpty=true, children : _*)
@@ -556,9 +554,14 @@ object Element:
      */
     case class Extra( mbSourceElement : Option[Element[?]], elem : Elem )
 
+    /**
+     * A helper, not itself an element.
+     */
+    case class PrettyPrintSpec( width : Int, step : Int, minimizeEmpty : Boolean )
+
 trait Element[T <: Element[T]]:
     self : T =>
-    import Element.Extra
+    import Element.{Extra,PrettyPrintSpec}
 
     val namespaces    : List[Namespace]
     val reverseExtras : List[Extra]
@@ -597,14 +600,15 @@ trait Element[T <: Element[T]]:
         val simple = this.toUndecoratedElem
         simple.copy(scope=Namespace.toBinding(this.namespaces), child=(simple.child.toList ::: this.extraElems))
 
-    def asXmlText(pp : PrettyPrinter = Element.DefaultPrettyPrinter, transformer : Node => Node = identity ) : String =
+    def asXmlText(pps : PrettyPrintSpec = Element.DefaultPrettyPrintSpec, transformer : Node => Node = identity ) : String =
+        val pp = new PrettyPrinter(width=pps.width, step=pps.step, minimizeEmpty=pps.minimizeEmpty )
         val noXmlDeclarationPretty = pp.format(transformer(this.toElem))
         s"<?xml version='1.0' encoding='UTF-8'?>\n${noXmlDeclarationPretty}"
 
-    def bytes( pp : PrettyPrinter = Element.DefaultPrettyPrinter, transformer : Node => Node = identity ) : immutable.Seq[Byte] =
-        immutable.ArraySeq.ofByte(asXmlText(pp,transformer).getBytes(scala.io.Codec.UTF8.charSet))
+    def bytes( pps : PrettyPrintSpec = Element.DefaultPrettyPrintSpec, transformer : Node => Node = identity ) : immutable.Seq[Byte] =
+        immutable.ArraySeq.ofByte(asXmlText(pps,transformer).getBytes(scala.io.Codec.UTF8.charSet))
 
-    lazy val asXmlText : String = asXmlText( Element.DefaultPrettyPrinter, identity )
+    lazy val asXmlText : String = asXmlText( Element.DefaultPrettyPrintSpec, identity )
 
     lazy val bytes : immutable.Seq[Byte] = immutable.ArraySeq.ofByte(asXmlText.getBytes(scala.io.Codec.UTF8.charSet))
 
