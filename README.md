@@ -1,6 +1,6 @@
 # audiofluidity-rss
 
-A simple Scala API for generating RSS, for general websites as well as for podcasts.
+A simple Scala 3 API for generating RSS, for general websites as well as for podcasts.
 
 Support is present for most common RSS extensions, including Apple Podcast "itunes" elements.
 
