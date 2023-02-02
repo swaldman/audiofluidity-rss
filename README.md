@@ -125,14 +125,16 @@ And whee!
 ## Features
 
 _audiofluidity-rss_ defines lots of not-standard-RSS elements that are commonly
-mixed into RSS feeds. For example...
+mixed into RSS feeds. 
+
+For example...
  * You might wish to mix-in non-RSS-standard tags
-   * You might want to use `<dc:creator>` elements for an author's name, rather 
+   * ...to use `<dc:creator>` elements for an author's name, rather 
      than the e-mail address required in the `<author>` tag by the RSS standard
-   * You might wish to include full-text content, rather than just the RSS-standard
+   * ...to include full-text content, rather than just the RSS-standard
      `<description>`, in your feed items. A common way to do this is with RDF-defined
      `<content:encoded>` tags.
-   * You might wish to add an `<atom:link>` element to your channel item indicating
+   * ...to add an `<atom:link>` element to your channel item indicating
      the home page of the blog tht the feed represents
    * If you do any or all of these things, your RSS tag should properly bind
      the right XML namespaces to those `dc`/`content`/`atom` prefixes.
@@ -140,19 +142,22 @@ mixed into RSS feeds. For example...
    you don't want to emit e-mails, real or fake), or to drop the required `<title>` element
    for untitled posts (rather than including an empty title).
 
-_audiofluidity_rss_ supports mixing-in nonstandard elements (and offers definitions of
-lots of common choices), defining RSS-tag namespaces, and inserting post-processing
-into the XML-generation process to [drop or rewrite](https://github.com/scala/scala-xml/wiki/Getting-started)
+_audiofluidity_rss_ supports 
+ - mixing-in nonstandard elements (and offers definitions of
+lots of common choices)
+ - defining RSS-tag namespaces -
+ - inserting post-processing into the XML-generation process to [drop or rewrite](https://github.com/scala/scala-xml/wiki/Getting-started)
 elements.
 
-For an example, please see [`examples/FancierExample.scala`](examples/FancierExample.scala). You can run it in
-the examples dir with
+For an example with all the above, please see [`examples/FancierExample.scala`](examples/FancierExample.scala). 
+
+You can run it in the examples dir with
 
 ```sh
 $ scala-cli . --interactive        
 ```
 
-Here's the output:
+Here's what the output looks like:
 
 ```xml
 <?xml version='1.0' encoding='UTF-8'?>
