@@ -23,7 +23,6 @@ val posts = immutable.SortedSet (
   MyBlog.Post("Is this on?", "In which I worry.", "Why was my post not greeted with adulation?", 1674795664978),
   MyBlog.Post("Pulitzer!", "In which I gloat.", "Finally 'Hello !' received the recognition it deserves.", 1675054938281),
   MyBlog.Post("", "This is an untitled post.", "I've got nothing to say but it's okay.", 1676054938281),
-
 )
 
 def zonedDateTime( epochMilli : Long ) =
