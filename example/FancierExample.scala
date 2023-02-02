@@ -34,9 +34,17 @@ object FancierExample:
     items = posts.toSeq.map( _.toItem) // toSeq is important here! (why?)
   ).withExtra(atomLinkChannelExtra)
 
-  val rss =
-    Element.Rss(channel)
-      .overNamespaces(Namespace.DublinCore :: Namespace.RdfContent :: Namespace.Atom :: Nil)
+
+//  We could, probably should, explicitly specify our Namespaces, as in the commented out code
+//  below. But the library will recognize usual prefixes for a few common Namespaces and
+//  automatically provide those NamespaceBindings. So, let's use the simpler variant now
+//  uncommented
+//
+//  val rss =
+//    Element.Rss(channel)
+//      .overNamespaces(Namespace.DublinCore :: Namespace.RdfContent :: Namespace.Atom :: Nil)
+
+  val rss = Element.Rss(channel)
 
   import scala.xml.{Node, NodeSeq, Elem,Text}
   import scala.xml.transform.{RewriteRule,RuleTransformer}

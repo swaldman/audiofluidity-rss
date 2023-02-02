@@ -8,6 +8,10 @@ object Namespace:
   val DublinCore   = Namespace("dc","http://purl.org/dc/elements/1.1/")
   val Atom         = Namespace("atom","http://www.w3.org/2005/Atom")
 
+  val byPrefix =
+    val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Nil
+    commonNamespaces.map( ns => (ns.prefix, ns)).toMap
+
   private def toBinding( parentScope : NamespaceBinding, list : List[Namespace] ) : NamespaceBinding =
     list match
       case head :: tail => toBinding(new NamespaceBinding(head.prefix, head.uri, parentScope), tail)

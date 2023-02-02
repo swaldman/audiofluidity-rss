@@ -596,19 +596,55 @@ trait Element[T <: Element[T]]:
 
     def toUndecoratedElem : Elem
 
-    def toElem : Elem =
+    lazy val toElem : Elem =
         val simple = this.toUndecoratedElem
         simple.copy(scope=Namespace.toBinding(this.namespaces), child=(simple.child.toList ::: this.extraElems))
 
-    def asXmlText(pps : PrettyPrintSpec = Element.DefaultPrettyPrintSpec, transformer : Node => Node = identity ) : String =
+    lazy val guessUnspecifiedNamespacesReferenced : Option[List[Namespace]] =
+        if this.namespaces.nonEmpty then
+            None // we don't guess if namespaces have been provided
+        else
+            val seen = mutable.Set.empty[Node]
+            val prefixes = mutable.Set.empty[String]
+
+            def check(node : Node) : Unit =
+                if !seen(node) then
+                    seen += node
+                    node match
+                        case elem : Elem if elem.prefix != null => prefixes += node.prefix
+                        case _ => /* ignore */
+                    node.child.foreach( check )
+
+            check( this.toElem )
+
+            // XXX: Should we log unrecognized prefixes?
+            Some( prefixes.map(Namespace.byPrefix.get).collect { case Some( ns : Namespace ) => ns}.toList )
+
+    def asXmlText(
+            pps                        : PrettyPrintSpec = Element.DefaultPrettyPrintSpec,
+            transformer                : Node => Node    = identity,
+            guessUnspecifiedNamespaces : Boolean         = true
+        ) : String =
+        val elem =
+            if guessUnspecifiedNamespaces then
+                guessUnspecifiedNamespacesReferenced match
+                    case Some(list) => this.toElem.copy(scope=Namespace.toBinding(list))
+                    case _          => this.toElem
+            else
+                this.toElem
         val pp = new PrettyPrinter(width=pps.width, step=pps.step, minimizeEmpty=pps.minimizeEmpty )
-        val noXmlDeclarationPretty = pp.format(transformer(this.toElem))
+        val noXmlDeclarationPretty = pp.format(transformer(elem))
         s"<?xml version='1.0' encoding='UTF-8'?>\n${noXmlDeclarationPretty}"
 
-    def bytes( pps : PrettyPrintSpec = Element.DefaultPrettyPrintSpec, transformer : Node => Node = identity ) : immutable.Seq[Byte] =
-        immutable.ArraySeq.ofByte(asXmlText(pps,transformer).getBytes(scala.io.Codec.UTF8.charSet))
+    def bytes(
+           pps                        : PrettyPrintSpec = Element.DefaultPrettyPrintSpec,
+           transformer                : Node => Node    = identity,
+           guessUnspecifiedNamespaces : Boolean         = true
+        ) : immutable.Seq[Byte] =
+        val xmlBytes = asXmlText(pps,transformer,guessUnspecifiedNamespaces).getBytes(scala.io.Codec.UTF8.charSet)
+        immutable.ArraySeq.ofByte(xmlBytes)
 
-    lazy val asXmlText : String = asXmlText( Element.DefaultPrettyPrintSpec, identity )
+    lazy val asXmlText : String = asXmlText( Element.DefaultPrettyPrintSpec, identity, true )
 
     lazy val bytes : immutable.Seq[Byte] = immutable.ArraySeq.ofByte(asXmlText.getBytes(scala.io.Codec.UTF8.charSet))
 
