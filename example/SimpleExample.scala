@@ -19,7 +19,7 @@ object SimpleExample:
     title = "My blog's RSS feed!",
     linkUrl = MyBlog.mainUrl,
     description = "This blog will blow your mind. Or your chance.",
-    items = posts
+    items = posts.toSeq.map( _.toItem) // toSeq is important here! (why?)
   )
 
   val rssFeed = Element.Rss(channel)

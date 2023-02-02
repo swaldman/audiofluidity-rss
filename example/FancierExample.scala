@@ -31,7 +31,7 @@ object FancierExample:
     title = "My blog's RSS feed!",
     linkUrl = MyBlog.mainUrl,
     description = "This blog will blow your mind. Or your chance.",
-    items = posts
+    items = posts.toSeq.map( _.toItem) // toSeq is important here! (why?)
   ).withExtra(atomLinkChannelExtra)
 
 //  We could, probably should, explicitly specify our Namespaces, as in the commented out code

@@ -10,7 +10,7 @@ Suppose we have a "blog" defined [like this](example/Setup.scala):
 
 ```scala
 //> using scala "3.2.1"
-//> using lib "com.mchange::audiofluidity-rss::0.0.2-SNAPSHOT"
+//> using lib "com.mchange::audiofluidity-rss::0.0.1"
 
 import audiofluidity.rss.*
 import java.time.*
@@ -64,7 +64,7 @@ object SimpleExample:
     title = "My blog's RSS feed!",
     linkUrl = MyBlog.mainUrl,
     description = "This blog will blow your mind. Or your chance.",
-    items = posts
+    items = posts.toSeq.map( _.toItem) // toSeq is important here! (why?)
   )
 
   val rssFeed = Element.Rss(channel)
