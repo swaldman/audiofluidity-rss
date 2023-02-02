@@ -34,11 +34,10 @@ object FancierExample:
     items = posts.toSeq.map( _.toItem) // toSeq is important here! (why?)
   ).withExtra(atomLinkChannelExtra)
 
-
 //  We could, probably should, explicitly specify our Namespaces, as in the commented out code
 //  below. But the library will recognize usual prefixes for a few common Namespaces and
 //  automatically provide those NamespaceBindings. So, let's use the simpler variant now
-//  uncommented
+//  uncommented.
 //
 //  val rss =
 //    Element.Rss(channel)
