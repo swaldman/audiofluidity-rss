@@ -54,7 +54,8 @@ object Element:
                 skipHours          : Option[Element.SkipHours]       = None,
                 skipDays           : Option[Element.SkipDays]        = None,
           )
-          def create( spec : Spec, items : immutable.Seq[Item]) : Channel =
+
+          def create[T : Itemable]( spec : Spec, items : Iterable[T]) : Channel =
                 create(
                       spec.title,
                       spec.linkUrl,
@@ -76,11 +77,12 @@ object Element:
                       spec.skipHours,
                       spec.skipDays,
                 )
-          def create (
+
+          def create[T : Itemable] (
                 title              : String,
                 linkUrl            : String,
                 description        : String,
-                items              : immutable.Seq[Item],
+                items              : Iterable[T],
                 language           : Option[LanguageCode]    = None,
                 copyright          : Option[String]          = None,
                 managingEditor     : Option[String]          = None,
@@ -132,7 +134,7 @@ object Element:
                       textInput = textInput,
                       skipHours = skipHours,
                       skipDays = skipDays,
-                      items = items
+                      items = items.toSeq.map( _.toItem )
                 )
     case class Channel(
         title          : Title,
