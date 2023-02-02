@@ -2,7 +2,9 @@
 
 A simple Scala 3 API for generating RSS, for general websites as well as for podcasts.
 
-Support is present for most common RSS extensions, including Apple Podcast "itunes" elements.
+Most common RSS extensions are supported, including Apple Podcast "itunes" elements.
+
+[![scaladoc](https://javadoc.io/badge2/com.mchange/audiofluidity-rss_3/0.0.2/scaladoc.svg)](https://javadoc.io/doc/com.mchange/audiofluidity-rss_3/0.0.2)
 
 ## Quickstart
 
@@ -144,7 +146,7 @@ For example...
 _audiofluidity_rss_ supports 
  - mixing-in nonstandard elements (and offers definitions of
 lots of common choices)
- - defining RSS-tag namespaces -
+ - defining RSS-tag namespaces
  - inserting post-processing into the XML-generation process to [drop or rewrite](https://github.com/scala/scala-xml/wiki/Getting-started)
 elements.
 
