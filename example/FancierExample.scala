@@ -67,5 +67,6 @@ object FancierExample:
   }
 
   @main def fancy_go() =
-    println( rss.asXmlText(transformer = dropAuthorAndUntitledTitles) )
+    val spec = Element.ToXml.Spec.Default.copy( postprocessor=dropAuthorAndUntitledTitles )
+    println( rss.asXmlText( spec ) )
 

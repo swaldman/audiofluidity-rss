@@ -1,5 +1,5 @@
 //> using scala "3.2.1"
-//> using lib "com.mchange::audiofluidity-rss::0.0.1"
+//> using lib "com.mchange::audiofluidity-rss::0.0.2-SNAPSHOT"
 
 import audiofluidity.rss.*
 import java.time.*

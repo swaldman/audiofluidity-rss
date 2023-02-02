@@ -12,8 +12,6 @@ object Element:
 
     private val RssDateTimeFormatter = RFC_1123_DATE_TIME
 
-    private val DefaultPrettyPrintSpec = PrettyPrintSpec( width = 120, step = 2, minimizeEmpty = true )
-
     private def elem(label : String, attributes1 : MetaData, children : Node*) : Elem =
         new Elem(prefix=null, label=label, attributes1=attributes1, scope=TopScope, minimizeEmpty=true, children : _*)
 
@@ -556,14 +554,20 @@ object Element:
      */
     case class Extra( mbSourceElement : Option[Element[?]], elem : Elem )
 
-    /**
-     * A helper, not itself an element.
-     */
-    case class PrettyPrintSpec( width : Int, step : Int, minimizeEmpty : Boolean )
+    object ToXml:
+        object Spec:
+            val Default = Spec(120, 2, true, identity, false)
+        case class Spec(
+            prettyPrintWidth           : Int,
+            prettyPrintStep            : Int,
+            prettyPrintMinimizeEmpty   : Boolean,
+            postprocessor              : Node => Node,
+            guessUnspecifiedNamespaces : Boolean,
+        )
 
 trait Element[T <: Element[T]]:
     self : T =>
-    import Element.{Extra,PrettyPrintSpec}
+    import Element.{Extra,ToXml}
 
     val namespaces    : List[Namespace]
     val reverseExtras : List[Extra]
@@ -622,31 +626,30 @@ trait Element[T <: Element[T]]:
             // XXX: Should we log unrecognized prefixes?
             Some( prefixes.map(Namespace.byPrefix.get).collect { case Some( ns : Namespace ) => ns}.toList )
 
-    def asXmlText(
-            pps                        : PrettyPrintSpec = Element.DefaultPrettyPrintSpec,
-            transformer                : Node => Node    = identity,
-            guessUnspecifiedNamespaces : Boolean         = true
-        ) : String =
+    def asPostprocessed( toXmlSpec : ToXml.Spec ) : Node =
         val elem =
-            if guessUnspecifiedNamespaces then
+            if toXmlSpec.guessUnspecifiedNamespaces then
                 guessUnspecifiedNamespacesReferenced match
                     case Some(list) => this.toElem.copy(scope=Namespace.toBinding(list))
                     case _          => this.toElem
             else
                 this.toElem
-        val pp = new PrettyPrinter(width=pps.width, step=pps.step, minimizeEmpty=pps.minimizeEmpty )
-        val noXmlDeclarationPretty = pp.format(transformer(elem))
+        toXmlSpec.postprocessor(elem)
+
+    private def asXmlText( postprocessed : Node, toXmlSpec : ToXml.Spec ) : String =
+        val pp = new PrettyPrinter(width=toXmlSpec.prettyPrintWidth, step=toXmlSpec.prettyPrintStep, minimizeEmpty=toXmlSpec.prettyPrintMinimizeEmpty )
+        val noXmlDeclarationPretty = pp.format(postprocessed)
         s"<?xml version='1.0' encoding='UTF-8'?>\n${noXmlDeclarationPretty}"
 
-    def bytes(
-           pps                        : PrettyPrintSpec = Element.DefaultPrettyPrintSpec,
-           transformer                : Node => Node    = identity,
-           guessUnspecifiedNamespaces : Boolean         = true
-        ) : immutable.Seq[Byte] =
-        val xmlBytes = asXmlText(pps,transformer,guessUnspecifiedNamespaces).getBytes(scala.io.Codec.UTF8.charSet)
+    def asXmlText( toXmlSpec : ToXml.Spec ) : String = asXmlText(this.asPostprocessed( toXmlSpec ), toXmlSpec )
+
+    def bytes( toXmlSpec : ToXml.Spec ) : immutable.Seq[Byte] =
+        val xmlBytes = asXmlText(toXmlSpec).getBytes(scala.io.Codec.UTF8.charSet)
         immutable.ArraySeq.ofByte(xmlBytes)
 
-    lazy val asXmlText : String = asXmlText( Element.DefaultPrettyPrintSpec, identity, true )
+    lazy val asPostprocessed : Node = this.asPostprocessed( ToXml.Spec.Default )
+
+    lazy val asXmlText : String = this.asXmlText( asPostprocessed, ToXml.Spec.Default )
 
     lazy val bytes : immutable.Seq[Byte] = immutable.ArraySeq.ofByte(asXmlText.getBytes(scala.io.Codec.UTF8.charSet))
 
