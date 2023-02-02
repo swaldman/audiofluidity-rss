@@ -6,7 +6,7 @@ Support is present for most common RSS extensions, including Apple Podcast "itun
 
 ## Quickstart
 
-Suppose we have a "blog" defined like this:
+Suppose we have a "blog" defined [like this](example/Setup.scala):
 
 ```scala
 //> using scala "3.2.1"
@@ -41,7 +41,7 @@ def zonedDateTime( epochMilli : Long ) =
   Instant.ofEpochMilli(epochMilli).atZone(ZoneId.systemDefault())
 ```
 
-You can generate simple XML for it like this:
+You can generate simple XML for it [like this](example/SimpleExample.scala):
 
 ```scala
 import audiofluidity.rss.*
@@ -145,13 +145,59 @@ lots of common choices), defining RSS-tag namespaces, and inserting post-process
 into the XML-generation process to [drop or rewrite](https://github.com/scala/scala-xml/wiki/Getting-started)
 elements.
 
-For an example, please see `examples/FancierExample.scala`. You can run it in
+For an example, please see [`examples/FancierExample.scala`](examples/FancierExample.scala). You can run it in
 the examples dir with
 
 ```sh
 $ scala-cli . --interactive        
 ```
 
+Here's the output:
+
+```xml
+<?xml version='1.0' encoding='UTF-8'?>
+<rss 
+version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>My blog's RSS feed!</title>
+    <link>https://myblog.dev.null/</link>
+    <description><![CDATA[This blog will blow your mind. Or your chance.]]></description>
+    <docs>https://cyber.harvard.edu/rss/rss.html</docs>
+    <item>
+      <pubDate>Fri, 10 Feb 2023 13:48:58 -0500</pubDate>
+      <description><![CDATA[This is an untitled post.]]></description>
+      <link>https://myblog.dev.null//entry/1676054938281.html</link>
+      <dc:creator><![CDATA[Arthur Q. Author]]></dc:creator>
+      <content:encoded><![CDATA[I've got nothing to say but it's okay.]]></content:encoded>
+    </item>
+    <item>
+      <pubDate>Mon, 30 Jan 2023 00:02:18 -0500</pubDate>
+      <description><![CDATA[In which I gloat.]]></description>
+      <link>https://myblog.dev.null//entry/1675054938281.html</link>
+      <title>Pulitzer!</title>
+      <dc:creator><![CDATA[Arthur Q. Author]]></dc:creator>
+      <content:encoded><![CDATA[Finally 'Hello !' received the recognition it deserves.]]></content:encoded>
+    </item>
+    <item>
+      <pubDate>Fri, 27 Jan 2023 00:01:04 -0500</pubDate>
+      <description><![CDATA[In which I worry.]]></description>
+      <link>https://myblog.dev.null//entry/1674795664978.html</link>
+      <title>Is this on?</title>
+      <dc:creator><![CDATA[Arthur Q. Author]]></dc:creator>
+      <content:encoded><![CDATA[Why was my post not greeted with adulation?]]></content:encoded>
+    </item>
+    <item>
+      <pubDate>Sun, 22 Jan 2023 23:58:43 -0500</pubDate>
+      <description><![CDATA[First post!]]></description>
+      <link>https://myblog.dev.null//entry/1674449923644.html</link>
+      <title>Hello!</title>
+      <dc:creator><![CDATA[Arthur Q. Author]]></dc:creator>
+      <content:encoded><![CDATA[Some words I write.]]></content:encoded>
+    </item>
+    <atom:link type="application/rss+xml" rel="self" href="https://myblog.dev.null/"/>
+  </channel>
+</rss>
+```
 
 ## Limitations
 
