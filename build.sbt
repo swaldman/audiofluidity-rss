@@ -16,9 +16,7 @@ lazy val root = project
   )
 
 def pomExtraForProjectName_Apache2( projectName : String ) = {
-  <url>https://github.com/swaldman/
-    {projectName}
-  </url>
+  <url>https://github.com/swaldman/{projectName}</url>
     <licenses>
       <license>
         <name>The Apache Software License, Version 2.0</name>
@@ -27,12 +25,9 @@ def pomExtraForProjectName_Apache2( projectName : String ) = {
       </license>
     </licenses>
     <scm>
-      <url>https://github.com/swaldman/
-        {projectName}
+      <url>https://github.com/swaldman/{projectName}
       </url>
-      <connection>scm:git:git@github.com:swaldman/
-        {projectName}
-        .git</connection>
+      <connection>scm:git:git@github.com:swaldman/{projectName}.git</connection>
     </scm>
     <developers>
       <developer>
