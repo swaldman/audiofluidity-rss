@@ -12,7 +12,7 @@ Suppose we have a "blog" defined [like this](example/Setup.scala):
 
 ```scala
 //> using scala "3.2.1"
-//> using lib "com.mchange::audiofluidity-rss::0.0.2"
+//> using dep "com.mchange::audiofluidity-rss:0.0.2"
 
 import audiofluidity.rss.*
 import java.time.*
@@ -150,7 +150,7 @@ lots of common choices)
  - inserting post-processing into the XML-generation process to [drop or rewrite](https://github.com/scala/scala-xml/wiki/Getting-started)
 elements.
 
-For an example with all the above, please see [`examples/FancierExample.scala`](examples/FancierExample.scala). 
+For an example with all the above, please see [`example/FancierExample.scala`](example/FancierExample.scala). 
 
 You can run it in the examples dir with
 
