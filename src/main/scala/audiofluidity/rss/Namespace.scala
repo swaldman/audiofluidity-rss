@@ -4,12 +4,15 @@ import scala.xml.{NamespaceBinding,TopScope}
 
 object Namespace:
   val RdfContent   = Namespace("content", "http://purl.org/rss/1.0/modules/content/")
-  val ApplePodcast = Namespace("itunes", "http://www.itunes.com/dtds/podcast-1.0.dtd")
-  val DublinCore   = Namespace("dc","http://purl.org/dc/elements/1.1/")
-  val Atom         = Namespace("atom","http://www.w3.org/2005/Atom")
+  val ApplePodcast = Namespace("itunes",  "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  val DublinCore   = Namespace("dc",      "http://purl.org/dc/elements/1.1/")
+  val Atom         = Namespace("atom",    "http://www.w3.org/2005/Atom")
+  val Podcast      = Namespace("podcast", "https://podcastindex.org/namespace/1.0")
+  val Spotify      = Namespace("spotify", "http://www.spotify.com/ns/rss")
+
 
   val byPrefix =
-    val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Nil
+    val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Nil
     commonNamespaces.map( ns => (ns.prefix, ns)).toMap
 
   private def toBinding( parentScope : NamespaceBinding, list : List[Namespace] ) : NamespaceBinding =
