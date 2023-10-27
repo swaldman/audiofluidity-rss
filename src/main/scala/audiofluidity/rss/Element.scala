@@ -7,10 +7,10 @@ import scala.xml.{Elem, MetaData, Node, Null, PCData, PrettyPrinter, Text, TopSc
 
 import scala.annotation.targetName
 
+import audiofluidity.rss.util.formatPubDate
+
 object Element:
     val RssVersion = "2.0"
-
-    private val RssDateTimeFormatter = RFC_1123_DATE_TIME
 
     private def elem(label : String, attributes1 : MetaData, children : Node*) : Elem =
         new Elem(prefix=null, label=label, attributes1=attributes1, scope=TopScope, minimizeEmpty=true, children : _*)
@@ -306,7 +306,7 @@ object Element:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
-            val dateStr = this.date.format(RssDateTimeFormatter)
+            val dateStr = formatPubDate(this.date)
             elem("lastBuildDate", new Text(dateStr))
 
     case class Link(location : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Link]:
@@ -328,7 +328,7 @@ object Element:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
-            val dateStr = this.date.format(RssDateTimeFormatter)
+            val dateStr = formatPubDate(this.date)
             elem("pubDate", new Text(dateStr))
 
     // this seems widely unutilized, not sure what the contents might look like exactly

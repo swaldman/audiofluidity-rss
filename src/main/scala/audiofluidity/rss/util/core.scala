@@ -2,7 +2,7 @@ package audiofluidity.rss.util
 
 import scala.util.Try
 
-import java.time.Instant
+import java.time.{Instant,ZonedDateTime}
 import java.time.format.*
 import java.time.temporal.ChronoField.*
 import java.time.chrono.IsoChronology
@@ -44,6 +44,8 @@ private val LenientRssDateTimeFormatter =
     // use the same resolver style and chronology
     .toFormatter().withResolverStyle(ResolverStyle.SMART).withChronology(IsoChronology.INSTANCE)
 
-def attemptLenientParsePubDate( str : String ) : Try[Instant] =
+def attemptLenientParsePubDateToInstant( str : String ) : Try[Instant] =
   (Try(RssDateTimeFormatter.parse(str)) orElse Try(LenientRssDateTimeFormatter.parse(str))).map( Instant.from )
+
+def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
 
