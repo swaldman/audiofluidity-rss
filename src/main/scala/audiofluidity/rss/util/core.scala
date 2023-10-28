@@ -7,6 +7,7 @@ import java.time.format.*
 import java.time.temporal.ChronoField.*
 import java.time.chrono.IsoChronology
 import scala.jdk.CollectionConverters._
+import java.time.temporal.TemporalAccessor
 
 private val RssDateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
@@ -44,8 +45,14 @@ private val LenientRssDateTimeFormatter =
     // use the same resolver style and chronology
     .toFormatter().withResolverStyle(ResolverStyle.SMART).withChronology(IsoChronology.INSTANCE)
 
+private def _attemptLenientParsePubDate( str : String ) : Try[TemporalAccessor] =
+  (Try(RssDateTimeFormatter.parse(str)) orElse Try(LenientRssDateTimeFormatter.parse(str)))
+
 def attemptLenientParsePubDateToInstant( str : String ) : Try[Instant] =
-  (Try(RssDateTimeFormatter.parse(str)) orElse Try(LenientRssDateTimeFormatter.parse(str))).map( Instant.from )
+  _attemptLenientParsePubDate( str ).map( Instant.from )
+
+def attemptLenientParsePubDate( str : String ) : Try[ZonedDateTime] =
+  _attemptLenientParsePubDate( str ).map( ZonedDateTime.from )
 
 def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
 
