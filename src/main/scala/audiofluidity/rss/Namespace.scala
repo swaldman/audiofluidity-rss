@@ -31,6 +31,28 @@ object Namespace:
   //   http://source.smallpict.com/2014/07/12/theSourceNamespace.html
   //     (in the wild, an early version)
 
+  def attemptCanonicalizeUri( uri : String ) : String =
+    val normalizedUri =
+      uri.dropWhile( _ != ':' ) // ignore http / https variation
+        .reverse
+        .dropWhile( _ == '/' ) // ignore trailing slashes
+        .reverse
+
+    normalizedUri match
+      case "://www.w3.org/2005/Atom" => "http://www.w3.org/2005/Atom"
+      case "://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md" => "https://podcastindex.org/namespace/1.0"
+      case "://podcastindex.org/namespace/1.0" => "https://podcastindex.org/namespace/1.0"
+      case "://podlove.org/simple-chapters" => "http://podlove.org/simple-chapters"
+      case "://www.google.com/schemas/play-podcasts/1.0" => "http://www.google.com/schemas/play-podcasts/1.0"
+      case "://blogs.law.harvard.edu/tech/creativeCommonsRssModule" => "http://web.resource.org/cc/"
+      case "://backend.userland.com/creativeCommonsRssModule" => "http://web.resource.org/cc/"
+      case "://cyber.law.harvard.edu/rss/creativeCommonsRssModule.html" => "http://web.resource.org/cc/"
+      case "://www.rssboard.org/media-rss" => "http://search.yahoo.com/mrss/"
+      case "://search.yahoo.com/rss" => "http://search.yahoo.com/mrss/"
+      case "://source.smallpict.com/2014/07/12/theSourceNamespace.html" => "http://source.scripting.com/"
+      case "://source.scripting.com" => "http://source.scripting.com/"
+      case _ => uri
+
   val byPrefix =
     val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: Nil
     commonNamespaces.map( ns => (ns.prefix, ns)).toMap
@@ -40,5 +62,6 @@ object Namespace:
       case head :: tail => toBinding(new NamespaceBinding(head.prefix, head.uri, parentScope), tail)
       case Nil          => parentScope
   def toBinding( namespaces : List[Namespace]) : NamespaceBinding = toBinding(TopScope, namespaces)
-case class Namespace(prefix : String, uri : String)
+case class Namespace(prefix : String, uri : String):
+  def canonical : Namespace = Namespace(prefix, Namespace.attemptCanonicalizeUri(uri))
 
