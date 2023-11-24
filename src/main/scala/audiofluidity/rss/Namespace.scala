@@ -1,6 +1,7 @@
 package audiofluidity.rss
 
-import scala.xml.{NamespaceBinding,TopScope}
+import scala.annotation.tailrec
+import scala.xml.{Elem,NamespaceBinding,TopScope}
 
 object Namespace:
   val RdfContent      = Namespace("content", "http://purl.org/rss/1.0/modules/content/")
@@ -56,6 +57,27 @@ object Namespace:
   val byPrefix =
     val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: Nil
     commonNamespaces.map( ns => (ns.prefix, ns)).toMap
+
+  @tailrec
+  private def namespaces( accum : List[Namespace], binding : NamespaceBinding ) : List[Namespace] =
+    if binding == TopScope || binding == null then accum else namespaces( Namespace(binding.prefix, binding.uri ) :: accum, binding.parent)
+
+  private def namespaces( accum : List[Namespace], bindingSeq : Seq[NamespaceBinding] ) : List[Namespace] =
+    bindingSeq.foldLeft( accum )( (soFar, next) => namespaces( soFar, next ) )
+
+  private def elemNamespacesRecursive( accum : List[Namespace], elems : Seq[Elem] ) : List[Namespace] =
+    elems.foldLeft( accum )( (soFar, next) => namespaces( soFar, next.descendant_or_self.map( _.scope ) ) )
+
+  private def elemNamespacesDirect( accum : List[Namespace], elems : Seq[Elem] ) : List[Namespace] =
+    elems.foldLeft( accum )( (soFar, next) => namespaces( soFar, next.map( _.scope ) ) )
+
+  def fromElemsRecursive( elems : Elem* ) : List[Namespace] = elemNamespacesRecursive( Nil, elems )
+
+  def fromElemRecursive( elem : Elem ) : List[Namespace] = fromElemsRecursive(Seq(elem)*)
+
+  def fromElemsDirect( elems : Elem* ) : List[Namespace] = elemNamespacesDirect( Nil, elems )
+
+  def fromElemDirect( elem : Elem ) : List[Namespace] = fromElemsDirect(Seq(elem)*)
 
   private def toBinding( parentScope : NamespaceBinding, list : List[Namespace] ) : NamespaceBinding =
     list match
