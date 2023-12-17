@@ -1,10 +1,11 @@
 package audiofluidity.rss
 
+import com.mchange.conveniences.string.*
 import scala.annotation.tailrec
 import scala.xml.{Elem,NamespaceBinding,TopScope}
 
 object Namespace:
-  final case class ExcludingConflicts( withUniquePrefixes : Set[Namespace], excluded : Map[String,Set[Namespace]] ):
+  final case class ExcludingConflicts( withUniquePrefixes : Set[Namespace], excluded : Map[Option[String],Set[Namespace]] ):
     lazy val excludedNamespaces = excluded.foldLeft( Set.empty[Namespace] )( (accum, nextTup) => accum ++ nextTup(1) )
 
   val RdfContent      = Namespace("content", "http://purl.org/rss/1.0/modules/content/")
@@ -57,9 +58,12 @@ object Namespace:
       case "://source.scripting.com" => "http://source.scripting.com/"
       case _ => uri
 
-  val byPrefix =
+  private val ByPrefix =
     val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: Nil
     commonNamespaces.map( ns => (ns.prefix, ns)).toMap
+
+  def byPrefix( pfx : Option[String] ) : Option[Namespace] = ByPrefix.get( pfx )
+  def byPrefix( pfx : String )         : Option[Namespace] = byPrefix( Some(pfx) )
 
   @tailrec
   private def namespaces( accum : List[Namespace], binding : NamespaceBinding ) : List[Namespace] =
@@ -104,10 +108,13 @@ object Namespace:
 
   private def toBinding( parentScope : NamespaceBinding, list : List[Namespace] ) : NamespaceBinding =
     list match
-      case head :: tail => toBinding(new NamespaceBinding(head.prefix, head.uri, parentScope), tail)
+      case head :: tail => toBinding(new NamespaceBinding(head.prefix.getOrElse(null), head.uri, parentScope), tail)
       case Nil          => parentScope
   def toBinding( namespaces : List[Namespace]) : NamespaceBinding = toBinding(TopScope, namespaces)
   def toBinding( namespaces : Set[Namespace])  : NamespaceBinding = toBinding(TopScope, namespaces.toList)
-case class Namespace(prefix : String, uri : String):
+
+  def apply( prefix : String, uri : String ) : Namespace = this( prefix.asOptionNotBlank, uri )
+
+case class Namespace(prefix : Option[String], uri : String):
   def canonical : Namespace = Namespace(prefix, Namespace.attemptCanonicalizeUri(uri))
 

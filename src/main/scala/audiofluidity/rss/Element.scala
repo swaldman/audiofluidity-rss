@@ -624,7 +624,7 @@ trait Element[T <: Element[T]]:
             check( this.toElem )
 
             // XXX: Should we log unrecognized prefixes?
-            Some( prefixes.map(Namespace.byPrefix.get).collect { case Some( ns : Namespace ) => ns}.toList )
+            Some( prefixes.map(Namespace.byPrefix).collect { case Some( ns : Namespace ) => ns}.toList )
 
     def asPostprocessed( toXmlSpec : ToXml.Spec ) : Node =
         val elem =
