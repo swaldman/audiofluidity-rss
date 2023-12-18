@@ -113,7 +113,7 @@ object Namespace:
   def toBinding( namespaces : List[Namespace]) : NamespaceBinding = toBinding(TopScope, namespaces)
   def toBinding( namespaces : Set[Namespace])  : NamespaceBinding = toBinding(TopScope, namespaces.toList)
 
-  def apply( prefix : String, uri : String ) : Namespace = this( prefix.asOptionNotBlank, uri )
+  def apply( prefix : String, uri : String ) : Namespace = this( prefix.toOptionNotBlank, uri )
 
 case class Namespace(prefix : Option[String], uri : String):
   def canonical : Namespace = Namespace(prefix, Namespace.attemptCanonicalizeUri(uri))
