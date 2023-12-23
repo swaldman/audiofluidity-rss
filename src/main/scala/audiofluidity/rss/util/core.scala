@@ -9,6 +9,8 @@ import java.time.chrono.IsoChronology
 import scala.jdk.CollectionConverters._
 import java.time.temporal.TemporalAccessor
 
+import scala.xml.*
+
 private val RssDateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
 // see https://stackoverflow.com/questions/45829799/java-time-format-datetimeformatter-rfc-1123-date-time-fails-to-parse-time-zone-n
@@ -56,3 +58,26 @@ def attemptLenientParsePubDate( str : String ) : Try[ZonedDateTime] =
 
 def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
 
+def singleElementRss( rssElem : Elem, retainGuid : String ) : Either[String,Elem] =
+  if rssElem.label != "rss" then
+    Left("Base element not RSS element: " + rssElem)
+  else
+    val channelElems = rssElem.child.collect { case elem : Elem if elem.label == "channel" => elem }
+    if channelElems.size != 1 then
+      Left("Should contain precisely one channele element, contains " + channelElems.size)
+    else
+      val channelElem = channelElems.head
+      def hasGuid( itemElem : Elem, guid : String ) : Boolean =
+        val guidElems = itemElem \ "guid"
+        guidElems.exists( _.text.trim() == guid )
+      val filteredChildren = channelElem.child.filter: node =>
+        node match
+          case elem : Elem if elem.label == "item" && !hasGuid(elem, retainGuid) => false
+          case _ => true
+      val filteredChannelElem =
+        channelElem.copy( child = filteredChildren )
+      val newRssChildren = rssElem.child.map: node =>
+        node match
+          case elem : Elem if elem.label == "channel" => filteredChannelElem
+          case other => other
+      Right( rssElem.copy( child = newRssChildren ) )
