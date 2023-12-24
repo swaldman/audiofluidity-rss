@@ -89,3 +89,36 @@ def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFi
 val SkipUnstableChannelElements = new Function1[Elem,Boolean]:
   def apply( elem : Elem ) = elem.label != "lastBuildDate" && elem.label != "pubDate"
 
+def stripWhitespaceDirectChildren( parent : Elem ) : Elem =
+  val trimmed = parent.child.map: n =>
+    n match
+      case t : Text => Text(t.text.trim)
+      case other    => other
+  val cleaned = trimmed.filter: n =>
+    n match
+      case t : Text => t.text.nonEmpty
+      case other    => true
+  parent.copy( child = cleaned )
+
+def stripInsignificantWhitespaceRecursive( top : Elem, whitespaceSignificant : Elem => Boolean ) : Elem =
+  def trim( elem : Elem ) : Elem =
+    if whitespaceSignificant(elem) then
+      elem
+    else
+      val newKids = elem.child.map: n =>
+        n match
+          case t : Text => Text(t.text.trim)
+          case e : Elem => trim(e)
+          case other    => other
+      elem.copy( child = newKids )
+  def filter( elem : Elem ) : Elem =
+    if whitespaceSignificant(elem) then
+      elem
+    else
+      val newKids = elem.child.filter: n =>
+        n match
+          case t : Text => t.text.nonEmpty
+          case other    => true
+      elem.copy( child = newKids )
+  filter( trim( top ) )
+
