@@ -58,7 +58,7 @@ def attemptLenientParsePubDate( str : String ) : Try[ZonedDateTime] =
 
 def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
 
-def singleElementRss( rssElem : Elem, retainGuid : String ) : Either[String,Elem] =
+def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFilter : Elem => Boolean = _ => true ) : Either[String,Elem] =
   if rssElem.label != "rss" then
     Left("Base element not RSS element: " + rssElem)
   else
@@ -72,7 +72,8 @@ def singleElementRss( rssElem : Elem, retainGuid : String ) : Either[String,Elem
         guidElems.exists( _.text.trim() == guid )
       val filteredChildren = channelElem.child.filter: node =>
         node match
-          case elem : Elem if elem.label == "item" && !hasGuid(elem, retainGuid) => false
+          case elem : Elem if elem.label == "item" => hasGuid(elem, retainGuid)
+          case elem : Elem => nonItemChannelChildrenFilter(elem)
           case _ => true
       val filteredChannelElem =
         channelElem.copy( child = filteredChildren )
@@ -81,3 +82,10 @@ def singleElementRss( rssElem : Elem, retainGuid : String ) : Either[String,Elem
           case elem : Elem if elem.label == "channel" => filteredChannelElem
           case other => other
       Right( rssElem.copy( child = newRssChildren ) )
+
+/**
+  * A filter predicate intended for use in the [[singleItemRss]] function.
+  */
+val SkipUnstableChannelElements = new Function1[Elem,Boolean]:
+  def apply( elem : Elem ) = elem.label != "lastBuildDate" && elem.label != "pubDate"
+
