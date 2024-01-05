@@ -4,7 +4,7 @@ ThisBuild / publishTo := {
 }
 
 ThisBuild / organization := "com.mchange"
-ThisBuild / version      := "0.0.5-SNAPSHOT"
+ThisBuild / version      := "0.0.5"
 ThisBuild / scalaVersion := "3.3.1"
 
 lazy val root = project
@@ -12,8 +12,8 @@ lazy val root = project
   .settings(
     name := "audiofluidity-rss",
     resolvers                += Resolver.mavenLocal,
-    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.1.0",
-    libraryDependencies += "com.mchange" %% "conveniences" % "0.0.2-SNAPSHOT",
+    libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
+    libraryDependencies += "com.mchange" %% "conveniences" % "0.0.2",
     libraryDependencies += "com.lihaoyi" %% "utest" % "0.8.1" % "test",
     testFrameworks += new TestFramework("utest.runner.Framework"),
     pomExtra := pomExtraForProjectName_Apache2( name.value )
