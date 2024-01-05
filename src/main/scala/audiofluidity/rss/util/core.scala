@@ -58,6 +58,14 @@ def attemptLenientParsePubDate( str : String ) : Try[ZonedDateTime] =
 
 def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
 
+/**
+  * Convert an RSS feed into a similar feed except containing just a single item.
+  *
+  * @param rssElem the rss to recreate for a single item
+  * @param retainGuid the guid of the single item
+  * @param nonItemChannelChildrenFilter which channel-level elements to include, by default all, @see SkipUnstableChannelElements
+  * @return either the single element RSS ot a String explaining why it could not be produced
+  */
 def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFilter : Elem => Boolean = _ => true ) : Either[String,Elem] =
   if rssElem.label != "rss" then
     Left("Base element not RSS element: " + rssElem)
