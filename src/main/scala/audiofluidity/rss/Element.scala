@@ -25,11 +25,11 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("author", new Text(this.email))
 
-    case class Category(domain : String, text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Category]:
+    case class Category(domain : Option[String], text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Category]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
-            elem("category", new UnprefixedAttribute("domain", this.domain, Null), new Text(this.text))
+            elem("category", domain.fold( Null )(d => new UnprefixedAttribute("domain", d, Null)), new Text(this.text))
 
     object Channel:
           case class Spec (

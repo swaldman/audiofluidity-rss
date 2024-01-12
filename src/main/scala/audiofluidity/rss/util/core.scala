@@ -1,5 +1,6 @@
 package audiofluidity.rss.util
 
+import scala.annotation.tailrec
 import scala.util.Try
 
 import java.time.{Instant,ZonedDateTime}
@@ -130,3 +131,50 @@ def stripInsignificantWhitespaceRecursive( top : Elem, whitespaceSignificant : E
       elem.copy( child = newKids )
   filter( trim( top ) )
 
+def stripScopes(root: Node): Node =
+  // from https://stackoverflow.com/questions/12535014/scala-completely-remove-namespace-from-xml
+  def clearScope(x: Node): Node = x match {
+    case e: Elem => e.copy(scope = TopScope, child = e.child.map(clearScope))
+    case o => o
+  }
+  clearScope(root)
+
+@tailrec
+def includesUnprefixedNamespace( binding : NamespaceBinding ) : Boolean =
+  if binding == TopScope then false
+  else if binding.prefix == null then true
+  else includesUnprefixedNamespace( binding.parent )
+
+@tailrec
+def unprefixedNamespaceOnly( binding : NamespaceBinding ) : NamespaceBinding =
+  binding match
+    case NamespaceBinding(null,   null, null  ) => TopScope
+    case NamespaceBinding(null,   null, parent) => unprefixedNamespaceOnly( parent )
+    case NamespaceBinding(null,    uri, _     ) => NamespaceBinding(null, uri, TopScope)
+    case NamespaceBinding(prefix,    _, null  ) => TopScope
+    case NamespaceBinding(prefix,    _, parent) => unprefixedNamespaceOnly( parent )
+
+
+def stripPrefixedNamespaces( root : Node ) : Node =
+  def clearPrefixedNamespaces(inheritedNsUri : String, x: Node): Node = x match {
+    case e: Elem =>
+      //println(s"See $e (scope ${e.scope})")
+      val unprefixedOrTop = unprefixedNamespaceOnly(e.scope)
+      if unprefixedOrTop.uri == null then // TopScope
+        e.copy(scope = TopScope, child = e.child.map(n => clearPrefixedNamespaces(null, n)))
+      else if unprefixedOrTop.uri == inheritedNsUri then  
+        e.copy(scope = TopScope, child = e.child.map(n => clearPrefixedNamespaces(inheritedNsUri, n)))
+      else // fresh unlabled namespace URI!
+        e.copy(scope = unprefixedOrTop, child = e.child.map(n => clearPrefixedNamespaces(unprefixedOrTop.uri, n)))
+    case o => o
+  }
+  clearPrefixedNamespaces(null, root)
+
+@tailrec
+def scopeContains( prefix : String, uri : String, binding : NamespaceBinding ) : Boolean =
+  if binding == TopScope then
+    false
+  else if prefix == binding.prefix && uri == binding.uri then
+    true
+  else
+    scopeContains( prefix, uri, binding.parent )
