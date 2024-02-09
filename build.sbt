@@ -4,14 +4,15 @@ ThisBuild / publishTo := {
 }
 
 ThisBuild / organization := "com.mchange"
-ThisBuild / version      := "0.0.6"
+ThisBuild / version      := "0.0.7-SNAPSHOT"
 ThisBuild / scalaVersion := "3.3.1"
 
 lazy val root = project
   .in(file("."))
   .settings(
     name := "audiofluidity-rss",
-    resolvers                += Resolver.mavenLocal,
+    resolvers           += Resolver.mavenLocal,
+    scalacOptions ++= Seq("-deprecation"),
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.2.0",
     libraryDependencies += "com.mchange" %% "conveniences" % "0.0.3",
     libraryDependencies += "com.lihaoyi" %% "utest" % "0.8.1" % "test",
