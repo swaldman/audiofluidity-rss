@@ -115,6 +115,14 @@ object Namespace:
 
   def apply( prefix : String, uri : String ) : Namespace = this( prefix.toOptionNotBlank, uri )
 
+  @tailrec
+  private def _unrollBinding( accum : List[Namespace], binding : NamespaceBinding ) : List[Namespace] =
+    if binding == TopScope then accum.reverse
+    else _unrollBinding( Namespace(Option(binding.prefix),binding.uri) :: accum, binding.parent )
+
+  def unrollBinding( binding : NamespaceBinding ) : List[Namespace] =
+    _unrollBinding(Nil,binding)
+
 case class Namespace(prefix : Option[String], uri : String):
   def canonical : Namespace = Namespace(prefix, Namespace.attemptCanonicalizeUri(uri))
 

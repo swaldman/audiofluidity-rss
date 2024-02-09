@@ -1,6 +1,6 @@
 package audiofluidity.rss.util
 
-import scala.annotation.tailrec
+import scala.annotation.{nowarn,tailrec}
 import scala.util.Try
 
 import java.time.{Instant,ZonedDateTime}
@@ -11,6 +11,7 @@ import scala.jdk.CollectionConverters._
 import java.time.temporal.TemporalAccessor
 
 import scala.xml.*
+import audiofluidity.rss.Namespace
 
 private val RssDateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
@@ -170,6 +171,7 @@ def stripPrefixedNamespaces( root : Node ) : Node =
   }
   clearPrefixedNamespaces(null, root)
 
+@deprecated("Please use scopeContainsRaw(...)","0.0.7")
 @tailrec
 def scopeContains( prefix : String, uri : String, binding : NamespaceBinding ) : Boolean =
   if binding == TopScope then
@@ -178,3 +180,37 @@ def scopeContains( prefix : String, uri : String, binding : NamespaceBinding ) :
     true
   else
     scopeContains( prefix, uri, binding.parent )
+
+@nowarn("cat=deprecation")
+def scopeContainsRaw( prefix : String, uri : String, binding : NamespaceBinding ) : Boolean =
+  scopeContains(prefix,uri,binding)
+
+@nowarn("cat=deprecation")
+def scopeContainsNamespace( namespace : Namespace, binding : NamespaceBinding ) : Boolean =
+  namespace.prefix match
+    case Some( pfx ) => scopeContains( pfx, namespace.uri, binding )
+    case None        => scopeContains( null, namespace.uri, binding )
+
+def scopeContainsNamespace( namespace : Namespace, namespaces : IterableOnce[Namespace] ) : Boolean =
+  namespaces.iterator.contains(namespace)
+
+private def uriCore( uri : String ) : String =
+  uri.dropWhile( _ != ':' ).reverse.dropWhile( _ == '/' ).reverse
+
+def scopeContainsRawLenient( prefix : String, uri : String, binding : NamespaceBinding ) : Boolean =
+  def bindingUriCore = uriCore( binding.uri )
+  if binding == TopScope then
+    false
+  else if prefix == binding.prefix && uri.contains(bindingUriCore) then
+    true
+  else
+    scopeContainsRawLenient( prefix, uri, binding.parent )
+
+def scopeContainsNamespaceLenient( namespace : Namespace, binding : NamespaceBinding ) : Boolean =
+  namespace.prefix match
+    case Some( pfx ) => scopeContainsRawLenient( pfx, namespace.uri, binding )
+    case None        => scopeContainsRawLenient( null, namespace.uri, binding )
+
+def scopeContainsNamespaceLenient( namespace : Namespace, namespaces : IterableOnce[Namespace] ) : Boolean =
+  namespaces.iterator.find( checkMe => namespace.uri.contains( uriCore( checkMe.uri ) ) ).nonEmpty
+
