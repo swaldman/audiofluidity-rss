@@ -8,6 +8,9 @@ object Namespace:
   final case class ExcludingConflicts( withUniquePrefixes : Set[Namespace], excluded : Map[Option[String],Set[Namespace]] ):
     lazy val excludedNamespaces = excluded.foldLeft( Set.empty[Namespace] )( (accum, nextTup) => accum ++ nextTup(1) )
 
+  // when adding new well-known namespaces,
+  // don't forget also to add to attemptCanonicalizeUri(...) and ByPrefix!
+
   val RdfContent      = Namespace("content", "http://purl.org/rss/1.0/modules/content/")
   val ApplePodcast    = Namespace("itunes",  "http://www.itunes.com/dtds/podcast-1.0.dtd")
   val DublinCore      = Namespace("dc",      "http://purl.org/dc/elements/1.1/")

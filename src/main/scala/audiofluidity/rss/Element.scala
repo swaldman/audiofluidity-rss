@@ -440,6 +440,19 @@ object Element:
             override def toUndecoratedElem: Elem =
                 Elem(prefix = "dc", label = "creator", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new PCData(this.creator))
 
+    object Source:
+        case class Account(service : String, account : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Account]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem: Elem =
+                Elem(prefix = "source", label = "account", attributes = new UnprefixedAttribute("service", this.service, Null), scope = TopScope, minimizeEmpty = true, child = new Text(this.account))
+
+        case class Blogroll(blogroll : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Blogroll]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem: Elem =
+                Elem(prefix = "source", label = "blogroll", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(this.blogroll))
+
     // Apple-specific elements
     private def ielem(label : String, attributes1 : MetaData, children : Node*) : Elem =
         new Elem(prefix="itunes", label=label, attributes1=attributes1, scope=TopScope, minimizeEmpty=true, children : _*)
