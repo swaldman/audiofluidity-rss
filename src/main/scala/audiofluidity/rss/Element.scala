@@ -170,6 +170,13 @@ object Element:
                   this.cloud.map(_.toElem) ++ this.ttl.map(_.toElem) ++ this.image.map(_.toElem) ++ this.rating.map(_.toElem) ++
                   this.textInput.map(_.toElem) ++ this.skipHours.map(_.toElem) ++ this.skipDays.map(_.toElem) ++ itemElems
             elem("channel", kids : _*)
+        override def reorderedChildren(rawChildren : List[Node]) : List[Node] =
+          def isItemElem( n : Node ) : Boolean =
+            n match
+                case elem : Elem => elem.label == "item"
+                case _           => false
+          val (items, other) = rawChildren.partition( isItemElem )
+          other ::: items
 
     case class Cloud(domain : String, port : Int, path : String, registerProcedure : String, protocol : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Cloud]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
@@ -615,9 +622,11 @@ trait Element[T <: Element[T]]:
 
     def toUndecoratedElem : Elem
 
+    def reorderedChildren(rawChildren : List[Node]) : List[Node] = rawChildren
+
     lazy val toElem : Elem =
         val simple = this.toUndecoratedElem
-        simple.copy(scope=Namespace.toBinding(this.namespaces), child=(simple.child.toList ::: this.extraElems))
+        simple.copy(scope=Namespace.toBinding(this.namespaces), child=reorderedChildren(simple.child.toList ::: this.extraElems))
 
     lazy val guessUnspecifiedNamespacesReferenced : Option[List[Namespace]] =
         if this.namespaces.nonEmpty then
