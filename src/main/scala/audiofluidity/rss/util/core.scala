@@ -5,6 +5,7 @@ import scala.util.Try
 
 import java.time.{Instant,ZonedDateTime}
 import java.time.format.*
+import java.time.temporal.{ChronoField,ChronoUnit}
 import java.time.temporal.ChronoField.*
 import java.time.chrono.IsoChronology
 import scala.jdk.CollectionConverters._
@@ -59,6 +60,12 @@ def attemptLenientParsePubDate( str : String ) : Try[ZonedDateTime] =
   _attemptLenientParsePubDate( str ).map( ZonedDateTime.from )
 
 def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
+
+def formatAtomUpdated( instant : Instant ) : String =
+  val millis = instant.get( ChronoField.MILLI_OF_SECOND )
+  val trunc = instant.truncatedTo( ChronoUnit.SECONDS )
+  val time = if millis >= 500 then trunc.plusSeconds(1) else trunc
+  DateTimeFormatter.ISO_INSTANT.format( time )
 
 /**
   * Convert an RSS feed into a similar feed except containing just a single item.

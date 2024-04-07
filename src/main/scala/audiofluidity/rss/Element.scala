@@ -1,13 +1,13 @@
 package audiofluidity.rss
 
-import java.time.ZonedDateTime
+import java.time.{Instant,ZonedDateTime}
 import java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME
 import scala.collection.*
 import scala.xml.{Elem, MetaData, Node, Null, PCData, PrettyPrinter, Text, TopScope, UnprefixedAttribute}
 
 import scala.annotation.targetName
 
-import audiofluidity.rss.util.formatPubDate
+import audiofluidity.rss.util.{formatAtomUpdated,formatPubDate}
 
 object Element:
     val RssVersion = "2.0"
@@ -432,6 +432,10 @@ object Element:
                 }
                 Elem(prefix = "atom", label = "link", attributes = attributes, scope = TopScope, minimizeEmpty = true )
 
+        case class Updated( updateTime : Instant, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil ) extends Element[Updated]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="updates", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatAtomUpdated(this.updateTime)))
 
     object Content:
         case class Encoded(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Encoded]:
