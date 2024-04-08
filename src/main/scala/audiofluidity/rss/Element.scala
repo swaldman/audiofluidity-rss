@@ -271,10 +271,10 @@ object Element:
             pubDate     : Option[ZonedDateTime]   = None,
             source      : Option[Source]          = None,
         ) : Item = this.apply (
-            Title(title),
-            Link(linkUrl),
-            Description(description),
-            Author(author),
+            if title.nonEmpty then Some(Title(title)) else None,
+            if linkUrl.nonEmpty then Some(Link(linkUrl)) else None,
+            if description.nonEmpty then Some(Description(description)) else None,
+            if author.nonEmpty then Some(Author(author)) else None,
             categories,
             comments.map(Comments(_)),
             enclosure,
@@ -283,10 +283,10 @@ object Element:
             source
         )
     case class Item(
-        title         : Title,
-        link          : Link,
-        description   : Description,
-        author        : Author,
+        title         : Option[Title],
+        link          : Option[Link],
+        description   : Option[Description],
+        author        : Option[Author],
         categories    : immutable.Seq[Category] = immutable.Seq.empty,
         comments      : Option[Comments]        = None,
         enclosure     : Option[Enclosure]       = None,
@@ -296,12 +296,15 @@ object Element:
         namespaces    : List[Namespace]         = Nil,
         reverseExtras : List[Extra]              = Nil,
     ) extends Element[Item]:
+        // from the spec "All elements of an item are optional, however at least one of title or description must be present."
+        require( link.nonEmpty || description.nonEmpty, "One of description or link must always be provided. Neither has ben provided." )
+
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             val kids =
                 this.categories.map(_.toElem) ++ this.source.map(_.toElem) ++ this.pubDate.map(_.toElem) ++ this.guid.map(_.toElem) ++ this.enclosure.map(_.toElem) ++
-                  this.comments.map(_.toElem) :+ this.author.toElem :+ this.description.toElem :+ this.link.toElem :+ this.title.toElem
+                  this.comments.map(_.toElem) ++ this.author.map( _.toElem ) ++ this.description.map( _.toElem ) ++ this.link.map( _.toElem ) ++ this.title.map( _.toElem )
             elem("item", kids : _*)
 
     case class Language(code : LanguageCode, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Language]:
