@@ -438,7 +438,7 @@ object Element:
         case class Updated( updateTime : Instant, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil ) extends Element[Updated]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
-            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="updates", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatAtomUpdated(this.updateTime)))
+            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="updated", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatAtomUpdated(this.updateTime)))
 
     object Content:
         case class Encoded(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Encoded]:
