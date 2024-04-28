@@ -467,7 +467,21 @@ object Element:
             override def toUndecoratedElem: Elem =
                 Elem(prefix = "source", label = "blogroll", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(this.blogroll))
 
-    // Apple-specific elements
+    // see https://www.rssboard.org/comment-api
+    object WellFormedWeb:
+      case class Comment( commentAcceptingUrl : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Comment]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem: Elem =
+                Elem(prefix = "wfw", label = "comment", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(commentAcceptingUrl))
+
+      case class CommentRss( rssUrl : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[CommentRss]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem: Elem =
+                Elem(prefix = "wfw", label = "commentRss", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(rssUrl))
+
+    // Apple-defined itunes elements
     private def ielem(label : String, attributes1 : MetaData, children : Node*) : Elem =
         new Elem(prefix="itunes", label=label, attributes1=attributes1, scope=TopScope, minimizeEmpty=true, children : _*)
     private def ielem(label : String, children : Node*) : Elem = ielem(label, Null, children : _*)

@@ -20,6 +20,7 @@ object Namespace:
   val Media           = Namespace("media",   "http://search.yahoo.com/mrss/") // see https://www.rssboard.org/media-rss
   val CreativeCommons = Namespace("cc",      "http://web.resource.org/cc/")
   val Source          = Namespace("source",  "http://source.scripting.com/") // see http://source.scripting.com/
+  val WellFormedWeb   = Namespace("wfw",     "http://wellformedweb.org/CommentAPI/") // see https://www.rssboard.org/comment-api
 
   // CreativeCommons namespace declaration variations
   //   http://blogs.law.harvard.edu/tech/creativeCommonsRssModule
@@ -59,10 +60,11 @@ object Namespace:
       case "://search.yahoo.com/rss" => "http://search.yahoo.com/mrss/"
       case "://source.smallpict.com/2014/07/12/theSourceNamespace.html" => "http://source.scripting.com/"
       case "://source.scripting.com" => "http://source.scripting.com/"
+      case "://wellformedweb.org/CommentAPI" => "http://wellformedweb.org/CommentAPI/"
       case _ => uri
 
   private val ByPrefix =
-    val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: Nil
+    val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: WellFormedWeb :: Nil
     commonNamespaces.map( ns => (ns.prefix, ns)).toMap
 
   def byPrefix( pfx : Option[String] ) : Option[Namespace] = ByPrefix.get( pfx )
