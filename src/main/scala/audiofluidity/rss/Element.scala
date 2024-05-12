@@ -3,7 +3,7 @@ package audiofluidity.rss
 import java.time.{Instant,ZonedDateTime}
 import java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME
 import scala.collection.*
-import scala.xml.{Elem, MetaData, Node, Null, PCData, PrettyPrinter, Text, TopScope, UnprefixedAttribute}
+import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, PCData, PrettyPrinter, Text, TopScope, UnprefixedAttribute}
 
 import scala.annotation.targetName
 
@@ -480,6 +480,14 @@ object Element:
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem: Elem =
                 Elem(prefix = "wfw", label = "commentRss", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(rssUrl))
+
+    object Iffy:
+      case class Provenance( links : List[Atom.Link], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Provenance]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem: Elem =
+                Elem(prefix = "iffy", label = "provenance", attributes = Null, scope = TopScope, minimizeEmpty = true, child = links.map(_.toElem)*)
+
 
     // Apple-defined itunes elements
     private def ielem(label : String, attributes1 : MetaData, children : Node*) : Elem =
