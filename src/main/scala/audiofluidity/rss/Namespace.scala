@@ -131,5 +131,6 @@ object Namespace:
     _unrollBinding(Nil,binding)
 
 case class Namespace(prefix : Option[String], uri : String):
-  def canonical : Namespace = Namespace(prefix, Namespace.attemptCanonicalizeUri(uri))
+  def canonical  : Namespace = Namespace(prefix, Namespace.attemptCanonicalizeUri(uri))
+  def unprefixed : Namespace = prefix.fold(this)(_ => Namespace(None, uri))
 
