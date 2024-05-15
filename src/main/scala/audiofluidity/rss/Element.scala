@@ -482,6 +482,14 @@ object Element:
                 Elem(prefix = "wfw", label = "commentRss", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(rssUrl))
 
     object Iffy:
+      object Completeness:
+        enum Value:
+          case Ping, Metadata, Content, Media
+      case class Completeness( value : Completeness.Value, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Completeness]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem: Elem =
+                Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
       case class Provenance( links : List[Atom.Link], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Provenance]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
