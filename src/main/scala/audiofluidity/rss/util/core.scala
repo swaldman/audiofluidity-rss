@@ -75,7 +75,7 @@ def formatAtomUpdated( instant : Instant ) : String =
   * @param nonItemChannelChildrenFilter which channel-level elements to include, by default all, @see SkipUnstableChannelElements
   * @return either the single element RSS ot a String explaining why it could not be produced
   */
-def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFilter : Elem => Boolean = _ => true ) : Either[String,Elem] =
+def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFilter : Elem => Boolean = _ => true, nonChannelRssChildrenFilter : Elem => Boolean = _ => true ) : Either[String,Elem] =
   if rssElem.label != "rss" then
     Left("Base element not RSS element: " + rssElem)
   else
@@ -94,9 +94,11 @@ def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFi
           case _ => true
       val filteredChannelElem =
         channelElem.copy( child = filteredChildren )
-      val newRssChildren = rssElem.child.map: node =>
+      val newRssChildren = rssElem.child.flatMap: node =>
         node match
-          case elem : Elem if elem.label == "channel" => filteredChannelElem
+          case elem : Elem if elem.label == "channel" => Seq( filteredChannelElem )
+          case elem : Elem if nonChannelRssChildrenFilter(elem) => Seq( elem )
+          case elem : Elem => Seq.empty
           case other => other
       Right( rssElem.copy( child = newRssChildren ) )
 
