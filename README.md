@@ -236,5 +236,6 @@ bookmark some useful RSS resources:
 - [DublinCore (`dc`) specification](https://www.dublincore.org/specifications/dublin-core/dcmi-terms/)
 - [Podcast RSS resources at audiofluidity main](https://github.com/swaldman/audiofluidity#podcast-rss)
 - [Atom specification](https://datatracker.ietf.org/doc/html/rfc4287)
+- [RSS Feed Best Practises &mdash; Kevin Cox](https://kevincox.ca/2022/05/06/rss-feed-best-practices/)
 
 See also the podcast-centric RSS resource list in the main [_audiofluidity_ README.md](https://github.com/swaldman/audiofluidity#developer-resources) 
