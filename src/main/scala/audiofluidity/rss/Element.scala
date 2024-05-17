@@ -507,7 +507,7 @@ object Element:
           def lenientParse( string : String ) : Option[Value] = Value.values.find( _.toString.equalsIgnoreCase( string ) )
         enum Value:
           case Ignore, Resurface, Reannounce
-      case class WhenUpdated( value : Completeness.Value, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[WhenUpdated]:
+      case class WhenUpdated( value : WhenUpdated.Value, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[WhenUpdated]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
