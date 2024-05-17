@@ -223,3 +223,13 @@ def scopeContainsNamespaceLenient( namespace : Namespace, binding : NamespaceBin
 def scopeContainsNamespaceLenient( namespace : Namespace, namespaces : IterableOnce[Namespace] ) : Boolean =
   namespaces.iterator.find( checkMe => namespace.uri.contains( uriCore( checkMe.uri ) ) ).nonEmpty
 
+def zeroOrOneChildElem( parent : Elem, label : String ) : Either[Seq[Elem],Option[Elem]] =
+  val kids = (parent \ label)
+  kids.size match
+    case 0 => Right( None )
+    case 1 => Right( Some(kids.head.asInstanceOf[Elem]) )
+    case _ => Left( kids.map( _.asInstanceOf[Elem] ) )
+
+extension (elem : Elem)
+  def colorablyInNamespace( ns : Namespace ) = ns.prefix.fold(false)(_ == elem.prefix) || scopeContainsNamespaceLenient( ns.unprefixed, elem.scope )
+
