@@ -483,26 +483,35 @@ object Element:
 
     object Iffy:
       object Completeness:
+        object Value:
+          def lenientParse( string : String ) : Option[Value] = Value.values.find( _.toString.equalsIgnoreCase( string ) )
         enum Value:
           case Ping, Metadata, Content, Media
       case class Completeness( value : Completeness.Value, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Completeness]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
-            Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
+          Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
+      case class OriginalGuid( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[OriginalGuid]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+          Elem(prefix = "iffy", label = "original-guid", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
       case class Provenance( links : List[Atom.Link], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Provenance]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "provenance", attributes = Null, scope = TopScope, minimizeEmpty = true, child = links.map(_.toElem)*)
       object WhenUpdated:
+        object Value:
+          def lenientParse( string : String ) : Option[Value] = Value.values.find( _.toString.equalsIgnoreCase( string ) )
         enum Value:
           case Ignore, Resurface, Reannounce
       case class WhenUpdated( value : Completeness.Value, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[WhenUpdated]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
-            Elem(prefix = "iffy", label = "when-updated", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
+          Elem(prefix = "iffy", label = "when-updated", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
 
     // Apple-defined itunes elements
     private def ielem(label : String, attributes1 : MetaData, children : Node*) : Elem =
