@@ -92,7 +92,8 @@ def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFi
           case elem : Elem if elem.label == "item" => hasGuid(elem, retainGuid)
           case elem : Elem => nonItemChannelChildrenFilter(elem)
           case _ => true
-      (filteredChildren \ "item").size match
+      val items = filteredChildren.collect { case elem : Elem if elem.label == "item" => elem }
+      items.size match
         case 0 =>
           Left(s"Item with guid '$retainGuid' not found!")
         case 1 =>
