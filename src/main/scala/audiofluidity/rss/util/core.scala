@@ -92,15 +92,21 @@ def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFi
           case elem : Elem if elem.label == "item" => hasGuid(elem, retainGuid)
           case elem : Elem => nonItemChannelChildrenFilter(elem)
           case _ => true
-      val filteredChannelElem =
-        channelElem.copy( child = filteredChildren )
-      val newRssChildren = rssElem.child.flatMap: node =>
-        node match
-          case elem : Elem if elem.label == "channel" => Seq( filteredChannelElem )
-          case elem : Elem if nonChannelRssChildrenFilter(elem) => Seq( elem )
-          case elem : Elem => Seq.empty
-          case other => other
-      Right( rssElem.copy( child = newRssChildren ) )
+      (filteredChildren \ "item").size match
+        case 0 =>
+          Left(s"Item with guid '$retainGuid' not found!")
+        case 1 =>
+          val filteredChannelElem =
+            channelElem.copy( child = filteredChildren )
+          val newRssChildren = rssElem.child.flatMap: node =>
+            node match
+              case elem : Elem if elem.label == "channel" => Seq( filteredChannelElem )
+              case elem : Elem if nonChannelRssChildrenFilter(elem) => Seq( elem )
+              case elem : Elem => Seq.empty
+              case other => other
+          Right( rssElem.copy( child = newRssChildren ) )
+        case n =>
+          Left(s"Multiple ($n) items with guid '$retainGuid' found!")
 
 /**
   * A filter predicate intended for use in the [[singleItemRss]] function.
