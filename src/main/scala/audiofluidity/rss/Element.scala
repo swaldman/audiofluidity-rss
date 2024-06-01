@@ -711,7 +711,7 @@ trait Element[T <: Element[T]]:
 
     lazy val asXmlText : String = this.asXmlText( asPostprocessed, ToXml.Spec.Default )
 
-    lazy val bytes : immutable.Seq[Byte] = immutable.ArraySeq.ofByte(asXmlText.getBytes(scala.io.Codec.UTF8.charSet))
+    lazy val bytes : immutable.ArraySeq[Byte] = immutable.ArraySeq.ofByte(asXmlText.getBytes(scala.io.Codec.UTF8.charSet))
 
 
 
