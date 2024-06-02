@@ -525,14 +525,8 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "revision", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
-      object Timestamp:
-        def apply( instant : Instant ) : Timestamp = apply( instant.atZone(UTC) )
-      case class Timestamp( time : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil ) extends Element[Timestamp]:
-        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
-        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
-        override def toUndecoratedElem : Elem = new Elem(prefix="iffy", label="timestamp", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatRFC3339ToSecond(time)))
       case class Update(
-        timestamp : Timestamp,
+        updated : Atom.Updated,
         summary : Option[Atom.Summary],
         revision : Option[Revision],
         diff : Option[Diff],
@@ -542,7 +536,7 @@ object Element:
       ) extends Element[Update]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
-        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update", (Seq(timestamp)++summary++revision++diff++creators).map(_.toElem)*)
+        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update", (Seq(updated)++summary++revision++diff++creators).map(_.toElem)*)
       case class UpdateHistory( updates : Seq[Update], initial : Option[Initial], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[UpdateHistory]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
