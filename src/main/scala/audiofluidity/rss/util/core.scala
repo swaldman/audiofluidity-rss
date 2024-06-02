@@ -61,11 +61,21 @@ def attemptLenientParsePubDate( str : String ) : Try[ZonedDateTime] =
 
 def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
 
-def formatAtomUpdated( instant : Instant ) : String =
+def roundToSecond( instant : Instant ) : Instant =
   val millis = instant.get( ChronoField.MILLI_OF_SECOND )
   val trunc = instant.truncatedTo( ChronoUnit.SECONDS )
-  val time = if millis >= 500 then trunc.plusSeconds(1) else trunc
-  DateTimeFormatter.ISO_INSTANT.format( time )
+  if millis >= 500 then trunc.plusSeconds(1) else trunc
+
+def roundToSecond( zdt : ZonedDateTime ) : ZonedDateTime =
+  val millis = zdt.get( ChronoField.MILLI_OF_SECOND )
+  val trunc = zdt.truncatedTo( ChronoUnit.SECONDS )
+  if millis >= 500 then trunc.plusSeconds(1) else trunc
+
+def formatRFC3339ToSecond( instant : Instant ) : String =
+  DateTimeFormatter.ISO_INSTANT.format( roundToSecond( instant ) )
+
+def formatRFC3339ToSecond( zdt : ZonedDateTime ) : String =
+  DateTimeFormatter.ISO_INSTANT.format( roundToSecond( zdt ) )
 
 /**
   * Convert an RSS feed into a similar feed except containing just a single item.

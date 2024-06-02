@@ -1,21 +1,29 @@
 package audiofluidity.rss
 
-import java.time.{Instant,ZonedDateTime}
+import java.time.{Instant,ZonedDateTime,ZoneId}
 import java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME
-import scala.collection.*
+import scala.collection.{immutable,mutable}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, PCData, PrettyPrinter, Text, TopScope, UnprefixedAttribute}
 
 import scala.annotation.targetName
 
-import audiofluidity.rss.util.{formatAtomUpdated,formatPubDate}
+import audiofluidity.rss.util.{formatRFC3339ToSecond,formatPubDate}
 
 object Element:
     val RssVersion = "2.0"
 
-    private def elem(label : String, attributes1 : MetaData, children : Node*) : Elem =
-        new Elem(prefix=null, label=label, attributes1=attributes1, scope=TopScope, minimizeEmpty=true, children : _*)
+    private val UTC = ZoneId.of("Z")
 
-    private def elem(label : String, children : Node*) : Elem = elem(label, Null, children : _*)
+    private def elem(prefix : String)(label : String, attributes1 : MetaData, children : Node*) : Elem =
+        new Elem(prefix=prefix, label=label, attributes1=attributes1, scope=TopScope, minimizeEmpty=true, children*)
+
+    private def elem(prefix : String)(label : String, children : Node*) : Elem =
+        elem(prefix=prefix)( label=label, attributes1=Null, children*)
+
+    private def elem(label : String, attributes1 : MetaData, children : Node*) : Elem =
+        elem(null)( label, attributes1, children* )
+
+    private def elem(label : String, children : Node*) : Elem = elem(label, Null, children*)
 
     enum ValidDay:
         case Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
@@ -435,17 +443,23 @@ object Element:
                 }
                 Elem(prefix = "atom", label = "link", attributes = attributes, scope = TopScope, minimizeEmpty = true )
 
-        case class Updated( updateTime : Instant, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil ) extends Element[Updated]:
+        case class Summary( text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil ) extends Element[Summary]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
-            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="updated", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatAtomUpdated(this.updateTime)))
+            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="summary", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
+
+        object Updated:
+            def apply( instant : Instant ) : Updated = apply( instant.atZone(UTC) )
+        case class Updated( zdt : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil ) extends Element[Updated]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="updated", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatRFC3339ToSecond(zdt)))
 
     object Content:
         case class Encoded(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Encoded]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="content", label="encoded", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(this.text))
-
 
     object DublinCore:
         case class Creator(creator : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Creator]:
@@ -492,11 +506,47 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
+      case class Diff( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Diff]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+          Elem(prefix = "iffy", label = "diff", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
+      case class Initial(creators : Seq[DublinCore.Creator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil ) extends Element[Initial]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", creators.map(_.toElem)*)
       case class Provenance( links : List[Atom.Link], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Provenance]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "provenance", attributes = Null, scope = TopScope, minimizeEmpty = true, child = links.map(_.toElem)*)
+      case class Revision( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Revision]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+          Elem(prefix = "iffy", label = "revision", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
+      object Timestamp:
+        def apply( instant : Instant ) : Timestamp = apply( instant.atZone(UTC) )
+      case class Timestamp( time : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil ) extends Element[Timestamp]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem : Elem = new Elem(prefix="iffy", label="timestamp", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatRFC3339ToSecond(time)))
+      case class Update(
+        timestamp : Timestamp,
+        summary : Option[Atom.Summary],
+        revision : Option[Revision],
+        diff : Option[Diff],
+        creators : Seq[DublinCore.Creator],
+        namespaces : List[Namespace] = Nil,
+        reverseExtras : List[Extra] = Nil
+      ) extends Element[Update]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update", (Seq(timestamp)++summary++revision++diff++creators).map(_.toElem)*)
+      case class UpdateHistory( updates : Seq[Update], initial : Option[Initial], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[UpdateHistory]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update-history", (updates++initial).map(_.toElem)* )
 
     // Apple-defined itunes elements
     private def ielem(label : String, attributes1 : MetaData, children : Node*) : Elem =
