@@ -545,6 +545,11 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "revision", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
+      case class Synthetic( namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil) extends Element[Synthetic]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+            Elem(prefix = "iffy", label = "synthetic", attributes = Null, scope = TopScope, minimizeEmpty = true )
       case class Update(
         updated : Atom.Updated,
         summary : Option[Atom.Summary],
