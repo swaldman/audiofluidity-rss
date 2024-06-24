@@ -3,6 +3,7 @@ package audiofluidity.rss
 import com.mchange.conveniences.string.*
 import scala.annotation.tailrec
 import scala.xml.{Elem,NamespaceBinding,TopScope}
+import audiofluidity.rss.util.scopeContainsNamespaceLenient
 
 object Namespace:
   final case class ExcludingConflicts( withUniquePrefixes : Set[Namespace], excluded : Map[Option[String],Set[Namespace]] ):
@@ -133,4 +134,7 @@ object Namespace:
 case class Namespace(prefix : Option[String], uri : String):
   def canonical  : Namespace = Namespace(prefix, Namespace.attemptCanonicalizeUri(uri))
   def unprefixed : Namespace = prefix.fold(this)(_ => Namespace(None, uri))
+  def belongsLenient( elem : Elem ) : Boolean = elem.prefix == this.prefix.getOrElse(null) || scopeContainsNamespaceLenient(this.unprefixed, elem.scope)
+
+
 
