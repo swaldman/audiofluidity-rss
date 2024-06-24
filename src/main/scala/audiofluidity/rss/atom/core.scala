@@ -126,5 +126,3 @@ def rssElementFromAtomFeedElem( atomFeedElem : Elem ) : Element.Rss =
 
 def rssElemFromAtomFeedElem( atomFeedElem : Elem ) : Elem = rssElementFromAtomFeedElem( atomFeedElem ).toElem
 
-
-
