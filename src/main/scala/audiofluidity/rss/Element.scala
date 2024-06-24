@@ -532,42 +532,33 @@ object Element:
           case Always, Never, Piggyback
         // XXX: It'd be better to check all the conditions and warn them all, rather
         //      than failing of first error
-        //
-        //      Would it be better to succeed on an ambiguous element than to fail where possible (e.g. two valid policy values)?
-        //      Probably not!
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[HintAnnounce] ) =
           val warnings = Vector.newBuilder[String]
-          val reverseExtras = childElemsBesidesAsReverseExtras( (Namespace.Iffy,"policy"), (Namespace.Iffy,"restriction") )(elem, retainParsed)
+          val extraReverseExtras = childElemsBesidesAsReverseExtras( (Namespace.Iffy,"policy"), (Namespace.Iffy,"restriction") )(elem, retainParsed)
           val asLastParsed = if retainParsed then Some(elem) else None
           val policyElems =
             val (w, e) = Iffy.Policy.extractFromChildren( elem, retainParsed )
             warnings ++= w
             e
-          if policyElems.size != 1 then
-            warnings += s"iffy:hint-announce expects exactly one iffy:policy sub-element, found ${policyElems.size}, skipping."
+          if policyElems.isEmpty then
+            warnings += s"iffy:hint-announce expects exactly an iffy:policy sub-element, found none, skipping."
             (warnings.result, None)
           else
-            Policy.lenientParse(policyElems.head.value) match
-              case Some( policy ) =>
-                val restrictionElems =
-                  val (w, e) = Iffy.Restriction.extractFromChildren( elem, retainParsed )
-                  warnings ++= w
-                  e
-                restrictionElems.zeroOrOne match
-                  case Right( mbRestriction ) => (warnings.result, Some(HintAnnounce(policy,mbRestriction, reverseExtras = reverseExtras, asLastParsed = asLastParsed)))
-                  case Left(n) =>
-                    warnings += s"Found multiple iffy:restriction elements while parsing iffy:hint-announce. Skipping."
-                    (warnings.result, None)
-              case None => 
-                warnings += s"Unknown or illegal iffy:hint-announce policy '${policyElems.head.value}'. Skipping."
-                (warnings.result, None)
+            val restrictionElems =
+              val (w, e) = Iffy.Restriction.extractFromChildren( elem, retainParsed )
+              warnings ++= w
+              e
+            val mbFirstRestriction = restrictionElems.headOption
+            val restrictionReverseExtras = if restrictionElems.nonEmpty then restrictionElems.tail.reverse.map( Extra.apply ).toList else Nil
+            val policyReverseExtras = policyElems.tail.reverse.map( Extra.apply ).toList
+            (warnings.result, Some(HintAnnounce(policyElems.head,mbFirstRestriction, reverseExtras = restrictionReverseExtras ::: policyReverseExtras ::: extraReverseExtras, asLastParsed = asLastParsed)))
         end fromChecked
       end HintAnnounce 
-      case class HintAnnounce( policy : HintAnnounce.Policy, restriction : Option[Restriction] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[HintAnnounce]:
+      case class HintAnnounce( policy : Iffy.Policy, restriction : Option[Restriction] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[HintAnnounce]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
-            Elem(prefix = "iffy", label = "hint-announce", attributes = Null, scope = TopScope, minimizeEmpty = true, child = (Seq(Policy(policy.toString).toElem) ++ restriction.map(_.toElem))*)
+            Elem(prefix = "iffy", label = "hint-announce", attributes = Null, scope = TopScope, minimizeEmpty = true, child = (Seq(policy.toElem) ++ restriction.map(_.toElem))*)
       case class Initial(creators : Seq[DublinCore.Creator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None ) extends Element[Initial]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -756,6 +747,8 @@ object Element:
     /**
      *  A helper, not itself an element.
      */
+    object Extra:
+      def apply( sourceElement : Element[?] ) : Extra = Extra( Some(sourceElement), sourceElement.toElem )
     case class Extra( mbSourceElement : Option[Element[?]], elem : Elem )
 
     trait Parser[T <: Element[T]]( val label : String, val namespace : Option[Namespace]):
