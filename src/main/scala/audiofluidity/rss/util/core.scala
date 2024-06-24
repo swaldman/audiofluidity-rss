@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters._
 import java.time.temporal.TemporalAccessor
 
 import scala.xml.*
-import audiofluidity.rss.Namespace
+import audiofluidity.rss.{Element,Namespace}
 
 private val RssDateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
@@ -239,6 +239,12 @@ def scopeContainsNamespaceLenient( namespace : Namespace, binding : NamespaceBin
 
 def scopeContainsNamespaceLenient( namespace : Namespace, namespaces : IterableOnce[Namespace] ) : Boolean =
   namespaces.iterator.find( checkMe => namespace.uri.contains( uriCore( checkMe.uri ) ) ).nonEmpty
+
+@tailrec
+def defaultNamespaceUri( binding : NamespaceBinding ) : Option[String] =
+  if binding == TopScope then None
+  else if binding.prefix == null then Some(binding.uri)
+  else defaultNamespaceUri(binding.parent)
 
 def zeroOrOneChildElem( parent : Elem, label : String ) : Either[Seq[Elem],Option[Elem]] =
   val kids = (parent \ label)
