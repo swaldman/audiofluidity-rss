@@ -553,6 +553,8 @@ object Element:
             val policyReverseExtras = policyElems.tail.reverse.map( Extra.apply ).toList
             (warnings.result, Some(HintAnnounce(policyElems.head,mbFirstRestriction, reverseExtras = restrictionReverseExtras ::: policyReverseExtras ::: extraReverseExtras, asLastParsed = asLastParsed)))
         end fromChecked
+        def apply( policy : Iffy.HintAnnounce.Policy, restriction : Option[Restriction] ) : HintAnnounce = apply( Iffy.Policy(policy.toString), restriction )
+        def apply( policy : Iffy.HintAnnounce.Policy ) : HintAnnounce = apply( Iffy.Policy(policy.toString) )
       end HintAnnounce 
       case class HintAnnounce( policy : Iffy.Policy, restriction : Option[Restriction] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[HintAnnounce]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
