@@ -544,6 +544,9 @@ object Element:
             warnings += s"iffy:hint-announce expects exactly an iffy:policy sub-element, found none, skipping."
             (warnings.result, None)
           else
+            policyElems.foreach: pe =>
+              if Policy.lenientParse( pe.value ).isEmpty then
+                warnings += s"Encountered unknown hint-announce policy value: '${pe.value}'"
             val restrictionElems =
               val (w, e) = Iffy.Restriction.extractFromChildren( elem, retainParsed )
               warnings ++= w
