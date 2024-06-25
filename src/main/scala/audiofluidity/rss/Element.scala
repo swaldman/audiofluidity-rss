@@ -586,7 +586,7 @@ object Element:
         //      than failing of first error
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[HintAnnounce] ) =
           val warnings = Vector.newBuilder[String]
-          val extraReverseExtras = childElemsBeyondAsReverseExtras( (Some(Namespace.Iffy),"policy")->1, (Some(Namespace.Iffy),"restriction") )(elem, retainParsed)
+          val extraReverseExtras = childElemsBeyondAsReverseExtras( "iffy:policy"->1, "iffy:restriction" )(elem, retainParsed)
           val extraAttributes = elem.attributes
           val asLastParsed = if retainParsed then Some(elem) else None
           val policyElems =
@@ -617,10 +617,27 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "hint-announce", attributes = Null, scope = TopScope, minimizeEmpty = true, child = (Seq(policy.toElem) ++ restriction.map(_.toElem))*)
+      object Initial extends Parser[Initial]("initial",Some(Namespace.Iffy)):
+        def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Initial] ) =
+          val warnings = Vector.newBuilder[String]
+          val creators =
+            val (ws, cs) = DublinCore.Creator.extractFromChildren(elem, retainParsed)
+            warnings ++= ws
+            cs
+          val reverseExtras = childElemsBeyondAsReverseExtras( "dc:creator" )(elem, retainParsed)
+          val extraAttributes = elem.attributes
+          val asLastParsed = if retainParsed then Some(elem) else None
+          ( warnings.result, Some( Initial( creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class Initial(creators : Seq[DublinCore.Creator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Initial]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", creators.map(_.toElem)*)
+      object OriginalGuid extends Parser[OriginalGuid]("original-guid",Some(Namespace.Iffy)):
+        def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[OriginalGuid] ) =
+          val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+          val extraAttributes = elem.attributes
+          val asLastParsed = if retainParsed then Some(elem) else None
+          ( Nil, Some( OriginalGuid( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class OriginalGuid( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[OriginalGuid]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -683,6 +700,22 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "type", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
+      object Update extends Parser[Update]("update",Some(Namespace.Iffy)):
+        def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Update] ) =
+          val warnings = Vector.newBuilder[String]
+          val updateds = Atom.Updated.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val summaries = Atom.Summary.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val revisions = Iffy.Revision.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val diffs = Iffy.Diff.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val creators = DublinCore.Creator.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          if updateds.isEmpty then
+            warnings += "Required atom:updated element is missing from iffy.updated. Skipping."
+            ( warnings.result, None )
+          else  
+            val reverseExtras = childElemsBeyondAsReverseExtras( "atom:updated"->1, "atom:summary"->1, "atom:revision"->1, "atom:diff"->1, "dc:creator" )(elem, retainParsed)
+            val extraAttributes = elem.attributes
+            val asLastParsed = if retainParsed then Some(elem) else None
+            ( warnings.result, Some( Update( updateds.head, summaries.headOption, revisions.headOption, diffs.headOption, creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class Update(
         updated : Atom.Updated,
         summary : Option[Atom.Summary],
@@ -835,6 +868,14 @@ object Element:
             case other =>
               accum
       val prefix = namespace.fold(null)(_.prefix)
+      def extractFromChildrenAndWarn(warnings : mutable.Growable[String])( parent : Elem, retainParsed : Boolean ) : Seq[T] =
+        val ( ws, ts ) = extractFromChildren( parent, retainParsed )
+        warnings ++= ws
+        ts
+      def maybeFromAndWarn(warnings : mutable.Growable[String])( elem : Elem, retainParsed : Boolean ) : Option[T] =
+        val ( ws, mbt ) = maybeFrom( elem, retainParsed )
+        warnings ++= ws
+        mbt
 
     object ToXml:
         object Spec:

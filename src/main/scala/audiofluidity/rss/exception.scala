@@ -4,3 +4,4 @@ class AudiofluidityRssException( msg : String, cause : Throwable = null ) extend
 
 class ConflictingNamespaces( msg : String, cause : Throwable = null ) extends AudiofluidityRssException( msg, cause )
 class BadAtomXml( msg : String, cause : Throwable = null ) extends AudiofluidityRssException( msg, cause )
+class UnsupportedNamespace( msg : String, cause : Throwable = null ) extends AudiofluidityRssException( msg, cause )
