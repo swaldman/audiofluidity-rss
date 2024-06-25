@@ -427,7 +427,7 @@ object Element:
         opaque type Iri = String
         def toIri( s : String ) : Iri = s
 
-        object Link extends Parser[Link]("link", Some(Namespace.Atom)):
+        object Link extends Parser[Link](Some(Namespace.Atom),"link"):
           def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Link] ) =
             val warnings = Vector.newBuilder[String]
             val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
@@ -483,7 +483,7 @@ object Element:
                 }
                 Elem(prefix = "atom", label = "link", attributes = attributes, scope = TopScope, minimizeEmpty = true )
 
-        object Summary extends Parser[Summary]("summary", Some(Namespace.Atom)):
+        object Summary extends Parser[Summary](Some(Namespace.Atom),"summary"):
           def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Summary] ) =
             val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
             val extraAttributes = elem.attributes
@@ -494,7 +494,7 @@ object Element:
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="summary", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
 
-        object Updated extends Parser[Updated]("updated", Some(Namespace.Atom)):
+        object Updated extends Parser[Updated](Some(Namespace.Atom),"updated"):
             def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Updated] ) =
               try
                 val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
@@ -516,7 +516,7 @@ object Element:
             override def toUndecoratedElem : Elem = new Elem(prefix="content", label="encoded", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(this.text))
 
     object DublinCore:
-        object Creator extends Parser[Creator]("creator",Some(Namespace.DublinCore)):
+        object Creator extends Parser[Creator](Some(Namespace.DublinCore),"creator"):
           def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Creator] ) =
             val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
             val extraAttributes = elem.attributes
@@ -566,7 +566,7 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
-      object Diff extends Parser[Diff]("diff",Some(Namespace.Iffy)):
+      object Diff extends Parser[Diff](Some(Namespace.Iffy),"diff"):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Diff] ) =
           val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
           val extraAttributes = elem.attributes
@@ -577,7 +577,7 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "diff", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
-      object HintAnnounce extends Parser[HintAnnounce]("hint-announce",Some(Namespace.Iffy)):
+      object HintAnnounce extends Parser[HintAnnounce](Some(Namespace.Iffy),"hint-announce"):
         object Policy:
           def lenientParse( string : String ) : Option[Policy] = Policy.values.find( _.toString.equalsIgnoreCase( string ) )
         enum Policy:
@@ -617,7 +617,7 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "hint-announce", attributes = Null, scope = TopScope, minimizeEmpty = true, child = (Seq(policy.toElem) ++ restriction.map(_.toElem))*)
-      object Initial extends Parser[Initial]("initial",Some(Namespace.Iffy)):
+      object Initial extends Parser[Initial](Some(Namespace.Iffy),"initial"):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Initial] ) =
           val warnings = Vector.newBuilder[String]
           val creators =
@@ -632,7 +632,7 @@ object Element:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", creators.map(_.toElem)*)
-      object OriginalGuid extends Parser[OriginalGuid]("original-guid",Some(Namespace.Iffy)):
+      object OriginalGuid extends Parser[OriginalGuid](Some(Namespace.Iffy),"original-guid"):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[OriginalGuid] ) =
           val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
           val extraAttributes = elem.attributes
@@ -643,7 +643,7 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "original-guid", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
-      object Policy extends Parser[Policy]("policy",Some(Namespace.Iffy)):
+      object Policy extends Parser[Policy](Some(Namespace.Iffy),"policy"):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Policy] ) =
           val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
           val extraAttributes = elem.attributes
@@ -663,7 +663,7 @@ object Element:
         override def toUndecoratedElem: Elem =
             val attributes = shape.fold(Null)( shape => new UnprefixedAttribute("shape", shape.toString, Null) )
             Elem(prefix = "iffy", label = "provenance", attributes = attributes, scope = TopScope, minimizeEmpty = true, child = (links.map(_.toElem) ++ childProvenances.map(_.toElem))*)
-      object Restriction extends Parser[Restriction]("restriction",Some(Namespace.Iffy)):
+      object Restriction extends Parser[Restriction](Some(Namespace.Iffy),"restriction"):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Restriction] ) =
           val reverseExtras = Nil // no extras, because we include directly unrestricted children
           val extraAttributes = elem.attributes
@@ -674,7 +674,7 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "restriction", attributes = Null, scope = TopScope, minimizeEmpty = true, child = child*)
-      object Revision extends Parser[Revision]("revision",Some(Namespace.Iffy)):
+      object Revision extends Parser[Revision](Some(Namespace.Iffy),"revision"):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Revision] ) =
           val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
           val extraAttributes = elem.attributes
@@ -700,7 +700,7 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "type", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
-      object Update extends Parser[Update]("update",Some(Namespace.Iffy)):
+      object Update extends Parser[Update](Some(Namespace.Iffy),"update"):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Update] ) =
           val warnings = Vector.newBuilder[String]
           val updateds = Atom.Updated.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
@@ -852,7 +852,7 @@ object Element:
       def apply( unpairedElem  : Elem       ) : Extra = Extra( None, unpairedElem )
     case class Extra( mbSourceElement : Option[Element[?]], elem : Elem )
 
-    trait Parser[T <: Element[T]]( val label : String, val namespace : Option[Namespace]) extends ParserUtils:
+    trait Parser[T <: Element[T]]( val namespace : Option[Namespace], val label : String ) extends ParserUtils:
       def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[T] ) 
       def check( elem : Elem ) : Boolean =
         elem.label == label && namespace.fold( defaultNamespaceUri(elem.scope) == None )( ns => ns.belongsLenient(elem) )
