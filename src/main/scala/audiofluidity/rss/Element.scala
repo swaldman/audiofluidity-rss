@@ -32,12 +32,12 @@ object Element:
     enum ValidDay:
         case Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
 
-    case class Author(email : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Author]:
+    case class Author(email : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Author]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("author", new Text(this.email))
 
-    case class Category(domain : Option[String], text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Category]:
+    case class Category(domain : Option[String], text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Category]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -147,29 +147,30 @@ object Element:
                       items = items.toSeq.map( _.toItem )
                 )
     case class Channel(
-        title          : Title,
-        link           : Link,
-        description    : Description,
-        language       : Option[Language] = None,
-        copyright      : Option[Copyright] = None,
-        managingEditor : Option[ManagingEditor] = None,
-        webMaster      : Option[WebMaster] = None,
-        pubDate        : Option[PubDate] = None,
-        lastBuildDate  : Option[LastBuildDate] = None,
-        categories     : immutable.Seq[Category] = immutable.Seq.empty,
-        generator      : Option[Generator] = None,
-        docs           : Option[Docs] = Some(Docs()), // use default docs URL
-        cloud          : Option[Cloud] = None,
-        ttl            : Option[Ttl] = None,
-        image          : Option[Image] = None,
-        rating         : Option[Rating] = None,
-        textInput      : Option[TextInput] = None,
-        skipHours      : Option[SkipHours] = None,
-        skipDays       : Option[SkipDays] = None,
-        items          : immutable.Seq[Item],
-        namespaces     : List[Namespace] = Nil,
-        reverseExtras  : List[Extra] = Nil,
-        asLastParsed       : Option[Elem] = None
+        title           : Title,
+        link            : Link,
+        description     : Description,
+        language        : Option[Language] = None,
+        copyright       : Option[Copyright] = None,
+        managingEditor  : Option[ManagingEditor] = None,
+        webMaster       : Option[WebMaster] = None,
+        pubDate         : Option[PubDate] = None,
+        lastBuildDate   : Option[LastBuildDate] = None,
+        categories      : immutable.Seq[Category] = immutable.Seq.empty,
+        generator       : Option[Generator] = None,
+        docs            : Option[Docs] = Some(Docs()), // use default docs URL
+        cloud           : Option[Cloud] = None,
+        ttl             : Option[Ttl] = None,
+        image           : Option[Image] = None,
+        rating          : Option[Rating] = None,
+        textInput       : Option[TextInput] = None,
+        skipHours       : Option[SkipHours] = None,
+        skipDays        : Option[SkipDays] = None,
+        items           : immutable.Seq[Item],
+        namespaces      : List[Namespace] = Nil,
+        reverseExtras   : List[Extra] = Nil,
+        extraAttributes : MetaData = Null, 
+        asLastParsed    : Option[Elem] = None
     ) extends Element[Channel]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -191,7 +192,7 @@ object Element:
           val (items, other) = rawChildren.partition( isItemElem )
           other ::: items
 
-    case class Cloud(domain : String, port : Int, path : String, registerProcedure : String, protocol : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Cloud]:
+    case class Cloud(domain : String, port : Int, path : String, registerProcedure : String, protocol : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Cloud]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -206,32 +207,32 @@ object Element:
             )
             elem("cloud", attributes )
 
-    case class Comments(url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Comments]:
+    case class Comments(url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Comments]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("comments", new Text(this.url))
 
-    case class Copyright(notice : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Copyright]:
+    case class Copyright(notice : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Copyright]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("copyright", new Text(this.notice))
 
-    case class Day(day : ValidDay, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Day]:
+    case class Day(day : ValidDay, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Day]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("day", new Text(this.day.toString))
 
-    case class Description(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Description]:
+    case class Description(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Description]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("description", new PCData(this.text))
 
-    case class Docs(url : String = "https://cyber.harvard.edu/rss/rss.html", namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Docs]:
+    case class Docs(url : String = "https://cyber.harvard.edu/rss/rss.html", namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Docs]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("docs", new Text(this.url))
 
-    case class Enclosure(url : String, length : Long, `type` : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Enclosure]:
+    case class Enclosure(url : String, length : Long, `type` : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Enclosure]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -242,28 +243,28 @@ object Element:
             )
             elem("enclosure", attributes )
 
-    case class Generator(description : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Generator]:
+    case class Generator(description : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Generator]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("generator", new Text(this.description))
 
-    case class Guid(isPermalink : Boolean, id : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Guid]:
+    case class Guid(isPermalink : Boolean, id : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Guid]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("guid", new UnprefixedAttribute("isPermalink", this.isPermalink.toString, Null), new Text(this.id))
 
     // should be 1 to 24
-    case class Hour(hour : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Hour]:
+    case class Hour(hour : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Hour]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("hour", new Text(this.hour.toString))
 
-    case class Height(pixels : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Height]:
+    case class Height(pixels : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Height]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("height", new Text(this.pixels.toString))
 
-    case class Image(url : Url, title : Title, link : Link, width : Option[Width], height : Option[Height], description : Option[Description], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Image]:
+    case class Image(url : Url, title : Title, link : Link, width : Option[Width], height : Option[Height], description : Option[Description], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Image]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -296,19 +297,20 @@ object Element:
             source
         )
     case class Item(
-        title         : Option[Title],
-        link          : Option[Link],
-        description   : Option[Description],
-        author        : Option[Author],
-        categories    : immutable.Seq[Category] = immutable.Seq.empty,
-        comments      : Option[Comments]        = None,
-        enclosure     : Option[Enclosure]       = None,
-        guid          : Option[Guid]            = None,
-        pubDate       : Option[PubDate]         = None,
-        source        : Option[Source]          = None,
-        namespaces    : List[Namespace]         = Nil,
-        reverseExtras : List[Extra]             = Nil,
-        asLastParsed      : Option[Elem]            = None
+        title           : Option[Title],
+        link            : Option[Link],
+        description     : Option[Description],
+        author          : Option[Author],
+        categories      : immutable.Seq[Category] = immutable.Seq.empty,
+        comments        : Option[Comments]        = None,
+        enclosure       : Option[Enclosure]       = None,
+        guid            : Option[Guid]            = None,
+        pubDate         : Option[PubDate]         = None,
+        source          : Option[Source]          = None,
+        namespaces      : List[Namespace]         = Nil,
+        reverseExtras   : List[Extra]             = Nil,
+        extraAttributes : MetaData                = Null, 
+        asLastParsed    : Option[Elem]            = None
     ) extends Element[Item]:
         // from the spec "All elements of an item are optional, however at least one of title or description must be present."
         require( link.nonEmpty || description.nonEmpty, "One of description or link must always be provided. Neither has ben provided." )
@@ -321,34 +323,34 @@ object Element:
                   this.comments.map(_.toElem) ++ this.author.map( _.toElem ) ++ this.description.map( _.toElem ) ++ this.link.map( _.toElem ) ++ this.title.map( _.toElem )
             elem("item", kids : _*)
 
-    case class Language(code : LanguageCode, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Language]:
+    case class Language(code : LanguageCode, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Language]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("language", new Text(this.code.rendered))
 
-    case class LastBuildDate(date : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[LastBuildDate]:
+    case class LastBuildDate(date : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[LastBuildDate]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             val dateStr = formatPubDate(this.date)
             elem("lastBuildDate", new Text(dateStr))
 
-    case class Link(location : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Link]:
+    case class Link(location : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Link]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("link", new Text(this.location))
 
-    case class ManagingEditor(email : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[ManagingEditor]:
+    case class ManagingEditor(email : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[ManagingEditor]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("managingEditor", new Text(this.email))
 
-    case class Name(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Name]:
+    case class Name(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Name]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("name", new Text(this.text))
 
-    case class PubDate(date : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[PubDate]:
+    case class PubDate(date : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[PubDate]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -356,59 +358,59 @@ object Element:
             elem("pubDate", new Text(dateStr))
 
     // this seems widely unutilized, not sure what the contents might look like exactly
-    case class Rating(contents : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Rating]:
+    case class Rating(contents : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Rating]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("rating", new Text(this.contents))
 
-    case class Rss( channel : Channel, version : String = RssVersion, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Rss]:
+    case class Rss( channel : Channel, version : String = RssVersion, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Rss]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem =
             elem("rss", new UnprefixedAttribute("version", RssVersion, Null), this.channel.toElem)
 
-    case class SkipDays(days : immutable.Seq[Day], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[SkipDays]:
+    case class SkipDays(days : immutable.Seq[Day], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[SkipDays]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("skipDays", this.days.map( _.toElem ) : _*)
 
-    case class SkipHours(hours : immutable.Seq[Hour], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[SkipHours]:
+    case class SkipHours(hours : immutable.Seq[Hour], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[SkipHours]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("skipHours", this.hours.map( _.toElem ) : _*)
 
-    case class Source(url : String, title : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Source]:
+    case class Source(url : String, title : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Source]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("source", new UnprefixedAttribute("url",this.url,Null), new Text(this.title))
 
     // mostly unutilized
-    case class TextInput(title : Title, description : Description, name : Name, link : Link, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[TextInput]:
+    case class TextInput(title : Title, description : Description, name : Name, link : Link, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[TextInput]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("textInput", this.title.toElem, this.description.toElem, this.name.toElem, this.link.toElem)
 
-    case class Title(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Title]:
+    case class Title(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Title]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("title", new Text(this.text))
 
-    case class Ttl(minutes : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Ttl]:
+    case class Ttl(minutes : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Ttl]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("ttl", new Text(this.minutes.toString))
 
-    case class Url(location : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Url]:
+    case class Url(location : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Url]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("url", new Text(this.location))
 
-    case class WebMaster(email : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[WebMaster]:
+    case class WebMaster(email : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[WebMaster]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("webMaster", new Text(this.email))
 
-    case class Width(pixels : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Width]:
+    case class Width(pixels : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Width]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem("width", new Text(this.pixels.toString))
@@ -424,15 +426,16 @@ object Element:
         def toIri( s : String ) : Iri = s
 
         case class Link(
-          href          : String,
-          rel           : Option[LinkRelation | Iri] = None,
-          `type`        : Option[String]             = None,
-          hreflang      : Option[LanguageCode]       = None,
-          title         : Option[String]             = None,
-          length        : Option[Long]               = None,
-          namespaces    : List[Namespace]            = Nil,
-          reverseExtras : List[Extra]                = Nil,
-          asLastParsed      : Option[Elem]               = None
+          href            : String,
+          rel             : Option[LinkRelation | Iri] = None,
+          `type`          : Option[String]             = None,
+          hreflang        : Option[LanguageCode]       = None,
+          title           : Option[String]             = None,
+          length          : Option[Long]               = None,
+          namespaces      : List[Namespace]            = Nil,
+          reverseExtras   : List[Extra]                = Nil,
+          extraAttributes : MetaData                   = Null,
+          asLastParsed    : Option[Elem]               = None
         ) extends Element[Link]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -450,7 +453,7 @@ object Element:
                 }
                 Elem(prefix = "atom", label = "link", attributes = attributes, scope = TopScope, minimizeEmpty = true )
 
-        case class Summary( text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None ) extends Element[Summary]:
+        case class Summary( text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Summary]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="summary", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
@@ -459,37 +462,38 @@ object Element:
             def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Updated] ) =
               try
                 val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+                val extraAttributes = elem.attributes
                 val asLastParsed = if retainParsed then Some(elem) else None
-                ( Nil, Some( Updated(ZonedDateTime.parse( elem.text ), reverseExtras = reverseExtras, asLastParsed = asLastParsed) ) )
+                ( Nil, Some( Updated(ZonedDateTime.parse( elem.text ), reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
               catch
                 case NonFatal(t) => ( Seq( s"Could not parse text '${elem.text}' as timestamp: $t"), None )
             def apply( instant : Instant ) : Updated = apply( instant.atZone(UTC) )
-        case class Updated( zdt : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None ) extends Element[Updated]:
+        case class Updated( zdt : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Updated]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="updated", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatRFC3339ToSecond(zdt)))
 
     object Content:
-        case class Encoded(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Encoded]:
+        case class Encoded(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Encoded]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="content", label="encoded", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(this.text))
 
     object DublinCore:
-        case class Creator(creator : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Creator]:
+        case class Creator(creator : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Creator]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem: Elem =
                 Elem(prefix = "dc", label = "creator", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new PCData(this.creator))
 
     object Source:
-        case class Account(service : String, account : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Account]:
+        case class Account(service : String, account : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Account]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem: Elem =
                 Elem(prefix = "source", label = "account", attributes = new UnprefixedAttribute("service", this.service, Null), scope = TopScope, minimizeEmpty = true, child = new Text(this.account))
 
-        case class Blogroll(blogroll : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Blogroll]:
+        case class Blogroll(blogroll : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Blogroll]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem: Elem =
@@ -497,13 +501,13 @@ object Element:
 
     // see https://www.rssboard.org/comment-api
     object WellFormedWeb:
-      case class Comment( commentAcceptingUrl : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Comment]:
+      case class Comment( commentAcceptingUrl : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Comment]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem: Elem =
                 Elem(prefix = "wfw", label = "comment", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(commentAcceptingUrl))
 
-      case class CommentRss( rssUrl : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[CommentRss]:
+      case class CommentRss( rssUrl : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[CommentRss]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem: Elem =
@@ -515,12 +519,12 @@ object Element:
           def lenientParse( string : String ) : Option[Value] = Value.values.find( _.toString.equalsIgnoreCase( string ) )
         enum Value:
           case Ping, Metadata, Content, Media
-      case class Completeness( value : Completeness.Value, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Completeness]:
+      case class Completeness( value : Completeness.Value, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Completeness]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
-      case class Diff( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Diff]:
+      case class Diff( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Diff]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -534,7 +538,8 @@ object Element:
         //      than failing of first error
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[HintAnnounce] ) =
           val warnings = Vector.newBuilder[String]
-          val extraReverseExtras = childElemsBesidesAsReverseExtras( (Namespace.Iffy,"policy"), (Namespace.Iffy,"restriction") )(elem, retainParsed)
+          val extraReverseExtras = childElemsBeyondAsReverseExtras( (Some(Namespace.Iffy),"policy")->1, (Some(Namespace.Iffy),"restriction") )(elem, retainParsed)
+          val extraAttributes = elem.attributes
           val asLastParsed = if retainParsed then Some(elem) else None
           val policyElems =
             val (w, e) = Iffy.Policy.extractFromChildren( elem, retainParsed )
@@ -554,21 +559,21 @@ object Element:
             val mbFirstRestriction = restrictionElems.headOption
             val restrictionReverseExtras = if restrictionElems.nonEmpty then restrictionElems.tail.reverse.map( Extra.apply ).toList else Nil
             val policyReverseExtras = policyElems.tail.reverse.map( Extra.apply ).toList
-            (warnings.result, Some(HintAnnounce(policyElems.head,mbFirstRestriction, reverseExtras = restrictionReverseExtras ::: policyReverseExtras ::: extraReverseExtras, asLastParsed = asLastParsed)))
+            (warnings.result, Some(HintAnnounce(policyElems.head,mbFirstRestriction, reverseExtras = restrictionReverseExtras ::: policyReverseExtras ::: extraReverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed)))
         end fromChecked
         def apply( policy : Iffy.HintAnnounce.Policy, restriction : Option[Restriction] ) : HintAnnounce = apply( Iffy.Policy(policy.toString), restriction )
         def apply( policy : Iffy.HintAnnounce.Policy ) : HintAnnounce = apply( Iffy.Policy(policy.toString) )
       end HintAnnounce 
-      case class HintAnnounce( policy : Iffy.Policy, restriction : Option[Restriction] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[HintAnnounce]:
+      case class HintAnnounce( policy : Iffy.Policy, restriction : Option[Restriction] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[HintAnnounce]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "hint-announce", attributes = Null, scope = TopScope, minimizeEmpty = true, child = (Seq(policy.toElem) ++ restriction.map(_.toElem))*)
-      case class Initial(creators : Seq[DublinCore.Creator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None ) extends Element[Initial]:
+      case class Initial(creators : Seq[DublinCore.Creator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Initial]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", creators.map(_.toElem)*)
-      case class OriginalGuid( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[OriginalGuid]:
+      case class OriginalGuid( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[OriginalGuid]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -576,9 +581,10 @@ object Element:
       object Policy extends Parser[Policy]("policy",Some(Namespace.Iffy)):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Policy] ) =
           val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+          val extraAttributes = elem.attributes
           val asLastParsed = if retainParsed then Some(elem) else None
-          ( Nil, Some( Policy( elem.text.trim, reverseExtras = reverseExtras, asLastParsed = asLastParsed) ) )
-      case class Policy( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Policy]:
+          ( Nil, Some( Policy( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
+      case class Policy( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Policy]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -586,7 +592,7 @@ object Element:
       object Provenance:
         enum Shape:
           case sequence, merge
-      case class Provenance( links : Seq[Atom.Link], childProvenances : Seq[Provenance],  shape : Option[Provenance.Shape] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Provenance]:
+      case class Provenance( links : Seq[Atom.Link], childProvenances : Seq[Provenance],  shape : Option[Provenance.Shape] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Provenance]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -594,15 +600,16 @@ object Element:
             Elem(prefix = "iffy", label = "provenance", attributes = attributes, scope = TopScope, minimizeEmpty = true, child = (links.map(_.toElem) ++ childProvenances.map(_.toElem))*)
       object Restriction extends Parser[Restriction]("restriction",Some(Namespace.Iffy)):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Restriction] ) =
-          val reverseExtras = Nil // nothing is "extra", because restriction parses to unrestricted nodes
+          val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+          val extraAttributes = elem.attributes
           val asLastParsed = if retainParsed then Some(elem) else None
-          ( Nil, Some( Restriction(elem.child, reverseExtras = reverseExtras, asLastParsed = asLastParsed) ) )
-      case class Restriction( child : Seq[Node] = Nil, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Restriction]:
+          ( Nil, Some( Restriction(elem.child, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
+      case class Restriction( child : Seq[Node] = Nil, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Restriction]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "restriction", attributes = Null, scope = TopScope, minimizeEmpty = true, child = child*)
-      case class Revision( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Revision]:
+      case class Revision( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Revision]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -612,12 +619,12 @@ object Element:
           val ItemUpdateFeed     = "ItemUpdateFeed"
           val UpdateAnnouncement = "UpdateAnnouncement"
           val UpdateCumulation   = "UpdateCumulation"
-      case class Synthetic( `type` : Option[Type] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Synthetic]:
+      case class Synthetic( `type` : Option[Type] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Synthetic]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "synthetic", attributes = Null, scope = TopScope, minimizeEmpty = true, child = `type`.map(_.toElem).toSeq* )
-      case class Type( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Type]:
+      case class Type( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Type]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
@@ -630,12 +637,13 @@ object Element:
         creators : Seq[DublinCore.Creator],
         namespaces : List[Namespace] = Nil,
         reverseExtras : List[Extra] = Nil,
+        extraAttributes : MetaData = Null,
         asLastParsed : Option[Elem] = None
       ) extends Element[Update]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update", (Seq(updated)++summary++revision++diff++creators).map(_.toElem)*)
-      case class UpdateHistory( updates : Seq[Update], initial : Option[Initial], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[UpdateHistory]:
+      case class UpdateHistory( updates : Seq[Update], initial : Option[Initial], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[UpdateHistory]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update-history", (updates++initial).map(_.toElem)* )
@@ -651,100 +659,100 @@ object Element:
         enum ValidEpisodeType:
             case full, trailer, bonus
 
-        case class Author(fullName : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Author]:
+        case class Author(fullName : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Author]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("author", new Text(this.fullName))
 
         // should always contain "Yes"
-        case class Block(namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Block]:
+        case class Block(namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Block]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("block", new Text("Yes"))
 
-        case class Category(text : String, subcategory : Option[Itunes.Category] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Category]:
+        case class Category(text : String, subcategory : Option[Itunes.Category] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Category]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem: Elem =
                 ielem("category", new UnprefixedAttribute("text", this.text, Null), this.subcategory.map(_.toElem).toSeq : _*)
 
         // should always contain "Yes"
-        case class Complete(namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Complete]:
+        case class Complete(namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Complete]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("complete", new Text("Yes"))
 
-        case class Duration(seconds : Long, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Duration]:
+        case class Duration(seconds : Long, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Duration]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("duration", new Text(this.seconds.toString))
 
-        case class Email(email : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Email]:
+        case class Email(email : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Email]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("email", new Text(this.email))
 
-        case class Episode(number : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Episode]:
+        case class Episode(number : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Episode]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("episode", new Text(this.number.toString))
 
-        case class EpisodeType(validEpisodeType : Itunes.ValidEpisodeType, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[EpisodeType]:
+        case class EpisodeType(validEpisodeType : Itunes.ValidEpisodeType, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[EpisodeType]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("episodeType", new Text(this.validEpisodeType.toString))
 
-        case class Explicit(isExplicit : Boolean, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Explicit]:
+        case class Explicit(isExplicit : Boolean, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Explicit]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("explicit", new Text(this.isExplicit.toString))
 
-        case class Image(href : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Image]:
+        case class Image(href : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Image]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem: Elem = ielem("image", new UnprefixedAttribute("href", this.href, Null) )
 
-        case class Keywords(keywords : immutable.Seq[String], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Keywords]:
+        case class Keywords(keywords : immutable.Seq[String], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Keywords]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("keywords", new Text(this.keywords.mkString(",")))
 
-        case class Name(name : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Name]:
+        case class Name(name : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Name]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("name", new Text(this.name))
 
-        case class NewFeedUrl(location : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[NewFeedUrl]:
+        case class NewFeedUrl(location : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[NewFeedUrl]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("new-feed-url", new Text(this.location))
 
-        case class Owner(name : Itunes.Name, email : Itunes.Email, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Owner]:
+        case class Owner(name : Itunes.Name, email : Itunes.Email, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Owner]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("owner", this.name.toElem, this.email.toElem)
 
-        case class Season(number : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Season]:
+        case class Season(number : Int, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Season]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("season", new Text(this.number.toString))
 
-        case class Subtitle(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Subtitle]:
+        case class Subtitle(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Subtitle]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("subtitle", new Text(this.text))
 
-        case class Summary(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Summary]:
+        case class Summary(text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Summary]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("summary", new Text(this.text))
 
-        case class Title(title : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Title]:
+        case class Title(title : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Title]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("title", new Text(this.title))
 
-        case class Type(validType : Itunes.ValidPodcastType, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, asLastParsed : Option[Elem] = None) extends Element[Type]:
+        case class Type(validType : Itunes.ValidPodcastType, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Type]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = ielem("type", new Text(this.validType.toString))
@@ -754,9 +762,10 @@ object Element:
      */
     object Extra:
       def apply( sourceElement : Element[?] ) : Extra = Extra( Some(sourceElement), sourceElement.toElem )
+      def apply( unpairedElem  : Elem       ) : Extra = Extra( None, unpairedElem )
     case class Extra( mbSourceElement : Option[Element[?]], elem : Elem )
 
-    trait Parser[T <: Element[T]]( val label : String, val namespace : Option[Namespace]):
+    trait Parser[T <: Element[T]]( val label : String, val namespace : Option[Namespace]) extends ParserUtils:
       def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[T] ) 
       def check( elem : Elem ) : Boolean =
         elem.label == label && namespace.fold( defaultNamespaceUri(elem.scope) == None )( ns => ns.belongsLenient(elem) )
@@ -788,9 +797,10 @@ trait Element[T <: Element[T]]:
     self : T =>
     import Element.{Extra,ToXml}
 
-    val namespaces    : List[Namespace]
-    val reverseExtras : List[Extra]
-    val asLastParsed  : Option[Elem]
+    val namespaces      : List[Namespace]
+    val reverseExtras   : List[Extra]
+    val extraAttributes : MetaData
+    val asLastParsed    : Option[Elem]
 
     def overNamespaces(namespaces : List[Namespace]) : T
 
@@ -814,8 +824,6 @@ trait Element[T <: Element[T]]:
 
     def withNoExtras() : T = reverseExtras(Nil)
 
-
-
     lazy val extras        = reverseExtras.reverse
     lazy val extraElems    = extras.map( _.elem )
     lazy val extraElements = extras.map( _.mbSourceElement ).collect { case Some(element) => element }
@@ -826,7 +834,7 @@ trait Element[T <: Element[T]]:
 
     lazy val toElem : Elem =
         val simple = this.toUndecoratedElem
-        simple.copy(scope=Namespace.toBinding(this.namespaces), child=reorderedChildren(simple.child.toList ::: this.extraElems))
+        simple.copy(scope=Namespace.toBinding(this.namespaces), attributes=simple.attributes.append(extraAttributes), child=reorderedChildren(simple.child.toList ::: this.extraElems))
 
     lazy val guessUnspecifiedNamespacesReferenced : Option[List[Namespace]] =
         if this.namespaces.nonEmpty then
