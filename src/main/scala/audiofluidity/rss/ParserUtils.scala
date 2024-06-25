@@ -12,7 +12,7 @@ trait ParserUtils:
   /*
   // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
-  def reverseExtrasBesides( expected : String | (Namespace, String )* )( nseq : NodeSeq, retainParsed : Boolean ) : List[Element.Extra] =
+  def reverseExtrasBesides( expected : String | (Namespace, String )* )( nseq : NodeSeq, retainParsed : Element.Kinds ) : List[Element.Extra] =
     nseq.foldLeft( List.empty[Element.Extra] ): ( accum, next ) =>
       def hits( expectedItem : String | (Namespace, String), elem : Elem ) =
         expectedItem match
@@ -25,25 +25,25 @@ trait ParserUtils:
           else Element.Extra( None, elem ) :: accum
         case _ => accum
 
-  def childElemsBesidesAsReverseExtras( expected : String | (Namespace, String )* )( elem : Elem, retainParsed : Boolean ) : List[Element.Extra] = reverseExtrasBesides( expected* )( elem.child, retainParsed )
-  def allChildElemsAsReverseExtras( elem : Elem, retainParsed : Boolean ) : List[Element.Extra] = reverseExtrasBesides()( elem.child, retainParsed )
+  def childElemsBesidesAsReverseExtras( expected : String | (Namespace, String )* )( elem : Elem, retainParsed : Element.Kinds ) : List[Element.Extra] = reverseExtrasBesides( expected* )( elem.child, retainParsed )
+  def allChildElemsAsReverseExtras( elem : Elem, retainParsed : Element.Kinds ) : List[Element.Extra] = reverseExtrasBesides()( elem.child, retainParsed )
   */
 
   private val UnknownNamespace = Namespace(Some("unknown"), "unknown:unknown")
 
   // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
-  def allChildElemsAsReverseExtras( elem : Elem, retainParsed : Boolean ) : List[Element.Extra]
+  def allChildElemsAsReverseExtras( elem : Elem, retainParsed : Element.Kinds ) : List[Element.Extra]
     = elemsBeyondAsReverseExtras()( elem.child.toList, retainParsed )
 
   // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
-  def childElemsBeyondAsReverseExtras( expected : (Tuple2[String,Int]|String)* )( elem : Elem, retainParsed : Boolean ) : List[Element.Extra]
+  def childElemsBeyondAsReverseExtras( expected : (Tuple2[String,Int]|String)* )( elem : Elem, retainParsed : Element.Kinds ) : List[Element.Extra]
     = elemsBeyondAsReverseExtras(expected*)( elem.child.toList, retainParsed )
 
   // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
-  def elemsBeyondAsReverseExtras( expected : (Tuple2[String,Int]|String)* )( nlist : List[Node], retainParsed : Boolean ) : List[Element.Extra] =
+  def elemsBeyondAsReverseExtras( expected : (Tuple2[String,Int]|String)* )( nlist : List[Node], retainParsed : Element.Kinds ) : List[Element.Extra] =
     def tuplize( fullLabel : String ) : Tuple2[Option[Namespace],String] =
       val colonIndex = fullLabel.lastIndexOf(':')
       if colonIndex >= 0 then
@@ -64,7 +64,7 @@ trait ParserUtils:
 
   // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
-  def tuplizedElemsBeyondAsReverseExtras( expected : (Tuple2[Tuple2[Option[Namespace],String],Int]|Tuple2[Option[Namespace],String])* )( nlist : List[Node], retainParsed : Boolean ) : List[Element.Extra] =
+  def tuplizedElemsBeyondAsReverseExtras( expected : (Tuple2[Tuple2[Option[Namespace],String],Int]|Tuple2[Option[Namespace],String])* )( nlist : List[Node], retainParsed : Element.Kinds ) : List[Element.Extra] =
     val _expected =
       expected.map( (arg : Tuple2[Tuple2[Option[Namespace],String],Int] | Tuple2[Option[Namespace],String]) =>
           arg match
@@ -76,7 +76,7 @@ trait ParserUtils:
     _tuplizedElemsBeyondAsReverseExtras(Nil,expectedNamespaces,_expected)(nlist, retainParsed)
 
   @tailrec
-  private def _tuplizedElemsBeyondAsReverseExtras(accum : List[Element.Extra], expectedNamespaces : Set[Namespace], expected : Map[Tuple2[Option[Namespace],String],Int] )( nlist : List[Node], retainParsed : Boolean ) : List[Element.Extra] =
+  private def _tuplizedElemsBeyondAsReverseExtras(accum : List[Element.Extra], expectedNamespaces : Set[Namespace], expected : Map[Tuple2[Option[Namespace],String],Int] )( nlist : List[Node], retainParsed : Element.Kinds ) : List[Element.Extra] =
     if nlist.isEmpty then
       accum
     else
