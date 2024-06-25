@@ -673,15 +673,15 @@ object Element:
             Elem(prefix = "iffy", label = "provenance", attributes = attributes, scope = TopScope, minimizeEmpty = true, child = (links.map(_.toElem) ++ childProvenances.map(_.toElem))*)
       object Restriction extends Parser[Restriction](Some(Namespace.Iffy),"restriction"):
         def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Restriction] ) =
-          val reverseExtras = Nil // no extras, because we include directly unrestricted children
+          val reverseExtras = allChildElemsAsReverseExtras( elem, retainParsed )
           val extraAttributes = elem.attributes
           val asLastParsed = if in(retainParsed) then Some(elem) else None
-          ( Nil, Some( Restriction(elem.child, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
-      case class Restriction( child : Seq[Node] = Nil, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Restriction]:
+          ( Nil, Some( Restriction( reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
+      case class Restriction( namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Restriction]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
-            Elem(prefix = "iffy", label = "restriction", attributes = Null, scope = TopScope, minimizeEmpty = true, child = child*)
+            Elem(prefix = "iffy", label = "restriction", attributes = Null, scope = TopScope, minimizeEmpty = true)
       object Revision extends Parser[Revision](Some(Namespace.Iffy),"revision"):
         def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Revision] ) =
           val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
@@ -693,16 +693,29 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "revision", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
-      object Synthetic:
+      object Synthetic extends Parser[Synthetic](Some(Namespace.Iffy),"synthetic"):
         object KnownType:
           val ItemUpdateFeed     = "ItemUpdateFeed"
           val UpdateAnnouncement = "UpdateAnnouncement"
           val UpdateCumulation   = "UpdateCumulation"
+        def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Synthetic] ) =
+          val warnings = Vector.newBuilder[String]
+          val types = Iffy.Type.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val reverseExtras = childElemsBeyondAsReverseExtras( "iffy:type"->1 )(elem, retainParsed)
+          val extraAttributes = elem.attributes
+          val asLastParsed = if in(retainParsed) then Some(elem) else None
+          ( warnings.result, Some( Synthetic( types.headOption, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class Synthetic( `type` : Option[Type] = None, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Synthetic]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "synthetic", attributes = Null, scope = TopScope, minimizeEmpty = true, child = `type`.map(_.toElem).toSeq* )
+      object Type extends Parser[Type](Some(Namespace.Iffy),"type"):
+        def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Type] ) =
+          val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+          val extraAttributes = elem.attributes
+          val asLastParsed = if in(retainParsed) then Some(elem) else None
+          ( Nil, Some( Type( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class Type( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Type]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -860,7 +873,7 @@ object Element:
     case class Kind( namespace : Option[Namespace], label : String )
 
     object Kinds:
-      val DefaultRetainParsed = Set( Iffy.Restriction.kind /*, Iffy.Synthetic.kind */)
+      val DefaultRetainParsed = Set( Iffy.Restriction.kind )
       val None = Set.empty[Kind]
       object All
 
@@ -872,12 +885,12 @@ object Element:
         case set : Set[Kind] => set.contains(kind)
 
     trait Parser[T <: Element[T]]( val namespace : Option[Namespace], val label : String ) extends ParserUtils:
-      def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[T] ) 
+      def fromChecked( elem : Elem, retainParsed : Kinds = Kinds.DefaultRetainParsed ) : ( Seq[String], Option[T] ) 
       def check( elem : Elem ) : Boolean =
         elem.label == label && namespace.fold( defaultNamespaceUri(elem.scope) == None )( ns => ns.belongsLenient(elem) )
-      def maybeFrom( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[T] ) =
+      def maybeFrom( elem : Elem, retainParsed : Kinds = Kinds.DefaultRetainParsed ) : ( Seq[String], Option[T] ) =
         if check( elem ) then fromChecked( elem, retainParsed ) else ( Nil, None )
-      def extractFromChildren( parent : Elem, retainParsed : Kinds ) : (Seq[String], Seq[T]) =
+      def extractFromChildren( parent : Elem, retainParsed : Kinds = Kinds.DefaultRetainParsed ) : (Seq[String], Seq[T]) =
         parent.child.foldLeft( (Vector.empty[String], Vector.empty[T] ) ): ( accum, next ) =>
           next match
             case elem : Elem  =>
@@ -886,11 +899,11 @@ object Element:
               ( oldWarnings ++ newWarnings, alreadyParsed ++ mbParsed )
             case other =>
               accum
-      def extractFromChildrenAndWarn(warnings : mutable.Growable[String])( parent : Elem, retainParsed : Kinds ) : Seq[T] =
+      def extractFromChildrenAndWarn(warnings : mutable.Growable[String])( parent : Elem, retainParsed : Kinds = Kinds.DefaultRetainParsed ) : Seq[T] =
         val ( ws, ts ) = extractFromChildren( parent, retainParsed )
         warnings ++= ws
         ts
-      def maybeFromAndWarn(warnings : mutable.Growable[String])( elem : Elem, retainParsed : Kinds ) : Option[T] =
+      def maybeFromAndWarn(warnings : mutable.Growable[String])( elem : Elem, retainParsed : Kinds = Kinds.DefaultRetainParsed ) : Option[T] =
         val ( ws, mbt ) = maybeFrom( elem, retainParsed )
         warnings ++= ws
         mbt
