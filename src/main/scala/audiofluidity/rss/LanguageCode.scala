@@ -2,6 +2,8 @@ package audiofluidity.rss
 
 // see https://cyber.harvard.edu/rss/languages.html
 
+object LanguageCode:
+  val byRendered : Map[String,LanguageCode] = LanguageCode.values.map( lc => (lc.rendered, lc ) ).toMap
 enum LanguageCode(val rendered : String):
   case Afrikaans extends LanguageCode("af")
   case Albanian extends LanguageCode("sq")

@@ -416,6 +416,8 @@ object Element:
         override def toUndecoratedElem : Elem = elem("width", new Text(this.pixels.toString))
 
     object Atom:
+        object LinkRelation:
+          def lenientParse( string : String ) : Option[LinkRelation] = LinkRelation.values.find( _.toString.equalsIgnoreCase( string ) )
         enum LinkRelation:
             case alternate, related, self, enclosure, via
 
@@ -425,6 +427,34 @@ object Element:
         opaque type Iri = String
         def toIri( s : String ) : Iri = s
 
+        object Link extends Parser[Link]("link", Some(Namespace.Atom)):
+          def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Link] ) =
+            val warnings = Vector.newBuilder[String]
+            val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+            val extraAttributes = attributesBeyond("href","rel","type","hreflang","title","length")( elem.attributes )
+            val asLastParsed = if retainParsed then Some(elem) else None
+            val mbHref = getAttr(elem.attributes)("href")
+            val mbRel = getAttr(elem.attributes)("rel").map( raw => LinkRelation.lenientParse(raw).getOrElse( toIri(raw) ) )
+            val mbType = getAttr(elem.attributes)("type")
+            val mbHrefLang =
+              getAttr(elem.attributes)("hreflang").flatMap: raw =>
+                LanguageCode.byRendered.get(raw).orElse:
+                  warnings += "Could not parse atom:link hreflang '${raw}' to a known language code. Omitting!"
+                  None
+            val mbTitle = getAttr(elem.attributes)("title")
+            val mbLength =
+              getAttr(elem.attributes)("length").flatMap: raw =>
+                try Some(raw.toLong)
+                catch
+                  case NonFatal(t) =>
+                    warnings += s"Failed to parse atom:link length '${raw}' to a valid Long. Omitting! (${t})"
+                    None
+            mbHref match
+              case Some(href) =>
+                ( warnings.result, Some( Link( href, mbRel, mbType, mbHrefLang, mbTitle, mbLength, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
+              case None =>
+                warnings += "Invalid atom:link element, missing href attribute. Skipping!"
+                ( warnings.result, None )
         case class Link(
           href            : String,
           rel             : Option[LinkRelation | Iri] = None,
@@ -453,6 +483,12 @@ object Element:
                 }
                 Elem(prefix = "atom", label = "link", attributes = attributes, scope = TopScope, minimizeEmpty = true )
 
+        object Summary extends Parser[Summary]("summary", Some(Namespace.Atom)):
+          def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Summary] ) =
+            val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+            val extraAttributes = elem.attributes
+            val asLastParsed = if retainParsed then Some(elem) else None
+            ( Nil, Some( Summary( elem.text , reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
         case class Summary( text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Summary]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )

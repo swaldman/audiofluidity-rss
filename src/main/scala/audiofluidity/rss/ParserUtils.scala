@@ -105,3 +105,5 @@ trait ParserUtils:
         case _ => false
 
 
+  def getAttr( md : MetaData )( key : String ) : Option[String] =
+    Option( md( key ) ).map( _.text.trim )
