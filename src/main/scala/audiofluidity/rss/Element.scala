@@ -516,6 +516,12 @@ object Element:
             override def toUndecoratedElem : Elem = new Elem(prefix="content", label="encoded", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(this.text))
 
     object DublinCore:
+        object Creator extends Parser[Creator]("creator",Some(Namespace.DublinCore)):
+          def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Creator] ) =
+            val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+            val extraAttributes = elem.attributes
+            val asLastParsed = if retainParsed then Some(elem) else None
+            ( Nil, Some( Creator( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
         case class Creator(creator : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Creator]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -560,6 +566,12 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
+      object Diff extends Parser[Diff]("diff",Some(Namespace.Iffy)):
+        def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Diff] ) =
+          val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+          val extraAttributes = elem.attributes
+          val asLastParsed = if retainParsed then Some(elem) else None
+          ( Nil, Some( Diff( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class Diff( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Diff]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -636,7 +648,7 @@ object Element:
             Elem(prefix = "iffy", label = "provenance", attributes = attributes, scope = TopScope, minimizeEmpty = true, child = (links.map(_.toElem) ++ childProvenances.map(_.toElem))*)
       object Restriction extends Parser[Restriction]("restriction",Some(Namespace.Iffy)):
         def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Restriction] ) =
-          val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+          val reverseExtras = Nil // no extras, because we include directly unrestricted children
           val extraAttributes = elem.attributes
           val asLastParsed = if retainParsed then Some(elem) else None
           ( Nil, Some( Restriction(elem.child, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
@@ -645,6 +657,12 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "restriction", attributes = Null, scope = TopScope, minimizeEmpty = true, child = child*)
+      object Revision extends Parser[Revision]("revision",Some(Namespace.Iffy)):
+        def fromChecked( elem : Elem, retainParsed : Boolean ) : ( Seq[String], Option[Revision] ) =
+          val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+          val extraAttributes = elem.attributes
+          val asLastParsed = if retainParsed then Some(elem) else None
+          ( Nil, Some( Revision( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class Revision( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Revision]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
