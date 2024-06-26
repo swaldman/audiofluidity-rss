@@ -643,17 +643,6 @@ object Element:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", creators.map(_.toElem)*)
-      object OriginalGuid extends Parser[OriginalGuid](Some(Namespace.Iffy),"original-guid"):
-        def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[OriginalGuid] ) =
-          val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
-          val extraAttributes = elem.attributes
-          val asLastParsed = if in(retainParsed) then Some(elem) else None
-          ( Nil, Some( OriginalGuid( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
-      case class OriginalGuid( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[OriginalGuid]:
-        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
-        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
-        override def toUndecoratedElem: Elem =
-          Elem(prefix = "iffy", label = "original-guid", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
       object Policy extends Parser[Policy](Some(Namespace.Iffy),"policy"):
         def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Policy] ) =
           val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
