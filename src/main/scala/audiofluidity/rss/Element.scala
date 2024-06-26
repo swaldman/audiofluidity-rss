@@ -447,7 +447,7 @@ object Element:
                 try Some(raw.toLong)
                 catch
                   case NonFatal(t) =>
-                    warnings += s"Failed to parse atom:link length '${raw}' to a valid Long. Omitting! (${t})"
+                    warnings += s"Failed to parse atom:link length '${raw}' to a valid long integer. Omitting! (${t})"
                     None
             mbHref match
               case Some(href) =>
@@ -668,15 +668,18 @@ object Element:
                 case ip : Elem if Iffy.Provenance.check(ip) => Iffy.Provenance.maybeFromAndWarn(warnings)(ip, retainParsed)
                 case _                                      => None
             }.flatten
-          val shape = elem.attributes("shape").map( _.text )
-          shape.foreach( str => if Shape.lenientParse(str).isEmpty then warnings += "Found unexpected iffy:provenance shape value: ${str}" )
+          val shape =
+            elem.attributes("shape").flatMap: raw =>
+              Shape.lenientParse(raw.text.trim).orElse:
+                warnings += "Found unexpected iffy:provenance shape value: ${str}. Skipping."
+                None
           val reverseExtras = childElemsBeyondAsReverseExtras( "atom:link", "iffy:provenance" )(elem, retainParsed)
           val extraAttributes = attributesBeyond("shape")(elem.attributes)
           val asLastParsed = if in(retainParsed) then Some(elem) else None
           ( warnings.result, Some( Provenance( linksAndProvenances, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class Provenance(
         linksAndProvenances : Seq[Atom.Link|Iffy.Provenance],
-        shape : Option[String] = None,
+        shape : Option[Provenance.Shape] = None,
         namespaces : List[Namespace] = Nil,
         reverseExtras : List[Extra] = Nil,
         extraAttributes : MetaData = Null,
