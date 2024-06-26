@@ -9,26 +9,6 @@ import scala.xml.Attribute
 
 object ParserUtils extends ParserUtils
 trait ParserUtils:
-  /*
-  // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
-  //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
-  def reverseExtrasBesides( expected : String | (Namespace, String )* )( nseq : NodeSeq, retainParsed : Element.Kinds ) : List[Element.Extra] =
-    nseq.foldLeft( List.empty[Element.Extra] ): ( accum, next ) =>
-      def hits( expectedItem : String | (Namespace, String), elem : Elem ) =
-        expectedItem match
-          case freeLabel : String                 => elem.label == freeLabel && defaultNamespaceUri(elem.scope) == None
-          case ( ns : Namespace, label : String ) => elem.label == label && ns.belongsLenient(elem)
-
-      next match
-        case elem : Elem =>
-          if expected.exists( expectedItem => hits( expectedItem, elem ) ) then accum // expected, not an extra!
-          else Element.Extra( None, elem ) :: accum
-        case _ => accum
-
-  def childElemsBesidesAsReverseExtras( expected : String | (Namespace, String )* )( elem : Elem, retainParsed : Element.Kinds ) : List[Element.Extra] = reverseExtrasBesides( expected* )( elem.child, retainParsed )
-  def allChildElemsAsReverseExtras( elem : Elem, retainParsed : Element.Kinds ) : List[Element.Extra] = reverseExtrasBesides()( elem.child, retainParsed )
-  */
-
   private val UnknownNamespace = Namespace(Some("unknown"), "unknown:unknown")
 
   // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
@@ -127,3 +107,6 @@ trait ParserUtils:
 
   def getAttr( md : MetaData )( key : String ) : Option[String] =
     Option( md( key ) ).map( _.text.trim )
+
+  def elemsOfKinds( kinds : Element.Kinds, nodes : Seq[Node] ) : Seq[Elem] =
+    nodes.collect { case elem : Elem if Element.Kind.forElem(elem).fold(false)( kind => Element.Kinds.contains(kinds, kind) ) => elem }

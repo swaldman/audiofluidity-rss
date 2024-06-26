@@ -10,7 +10,7 @@ object Namespace:
     lazy val excludedNamespaces = excluded.foldLeft( Set.empty[Namespace] )( (accum, nextTup) => accum ++ nextTup(1) )
 
   // when adding new well-known namespaces,
-  // don't forget also to add to attemptCanonicalizeUri(...) and ByPrefix!
+  // don't forget also to add to attemptCanonicalizeUri(...) and Common!
 
   val RdfContent      = Namespace("content", "http://purl.org/rss/1.0/modules/content/")
   val ApplePodcast    = Namespace("itunes",  "http://www.itunes.com/dtds/podcast-1.0.dtd")
@@ -66,9 +66,9 @@ object Namespace:
       case "://tech.interfluidity.com/xml/iffy" => "http://tech.interfluidity.com/xml/iffy/"
       case _ => uri
 
-  private val ByPrefix =
-    val commonNamespaces = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: WellFormedWeb :: Iffy :: Nil
-    commonNamespaces.map( ns => (ns.prefix, ns)).toMap
+  private val Common = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: WellFormedWeb :: Iffy :: Nil
+
+  private val ByPrefix = Common.map( ns => (ns.prefix, ns)).toMap
 
   def byPrefix( pfx : Option[String] ) : Option[Namespace] = ByPrefix.get( pfx )
   def byPrefix( pfx : String )         : Option[Namespace] = byPrefix( Some(pfx) )
@@ -130,6 +130,16 @@ object Namespace:
 
   def unrollBinding( binding : NamespaceBinding ) : List[Namespace] =
     _unrollBinding(Nil,binding)
+
+  /**
+    * @throws IncompleteNamespace iff elem has a prefix that can't be resolved
+    */
+  def guessForElem( elem : Elem ) : Option[Namespace] =
+    val check = fromElemDirect(elem).find( ns => ns.belongsLenient(elem) ) orElse Common.find( ns => ns.belongsLenient(elem) )
+    if check.isEmpty && elem.prefix != null then
+      throw new IncompleteNamespace(s"Namespace URL for prefix '${elem.prefix}' could not be found or guessed.")
+    else
+      check
 
 case class Namespace(prefix : Option[String], uri : String):
   def canonical  : Namespace = Namespace(prefix, Namespace.attemptCanonicalizeUri(uri))
