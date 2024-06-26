@@ -747,20 +747,22 @@ object Element:
           val summaries = Atom.Summary.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
           val revisions = Iffy.Revision.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
           val diffs = Iffy.Diff.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val titles = Atom.Title.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
           val creators = DublinCore.Creator.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
           if updateds.isEmpty then
             warnings += "Required atom:updated element is missing from iffy.updated. Skipping."
             ( warnings.result, None )
           else
-            val reverseExtras = childElemsBeyondAsReverseExtras( "atom:updated"->1, "atom:summary"->1, "atom:revision"->1, "atom:diff"->1, "dc:creator" )(elem, retainParsed)
+            val reverseExtras = childElemsBeyondAsReverseExtras( "atom:updated"->1, "atom:summary"->1, "atom:revision"->1, "atom:diff"->1, "atom:title"->1, "dc:creator" )(elem, retainParsed)
             val extraAttributes = elem.attributes
             val asLastParsed = if in(retainParsed) then Some(elem) else None
-            ( warnings.result, Some( Update( updateds.head, summaries.headOption, revisions.headOption, diffs.headOption, creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
+            ( warnings.result, Some( Update( updateds.head, summaries.headOption, revisions.headOption, diffs.headOption, titles.headOption, creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
       case class Update(
         updated : Atom.Updated,
         summary : Option[Atom.Summary],
         revision : Option[Revision],
         diff : Option[Diff],
+        title : Option[Atom.Title],
         creators : Seq[DublinCore.Creator],
         namespaces : List[Namespace] = Nil,
         reverseExtras : List[Extra] = Nil,
