@@ -494,6 +494,17 @@ object Element:
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="summary", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
 
+        object Title extends Parser[Title](Some(Namespace.Atom),"title"):
+          def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Title] ) =
+            val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+            val extraAttributes = elem.attributes
+            val asLastParsed = if in(retainParsed) then Some(elem) else None
+            ( Nil, Some( Title( elem.text , reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
+        case class Title( text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Title]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="title", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
+
         object Updated extends Parser[Updated](Some(Namespace.Atom),"updated"):
             def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Updated] ) =
               try
