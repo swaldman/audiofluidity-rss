@@ -482,7 +482,20 @@ object Element:
                     new UnprefixedAttribute(next(0), next(1), accum)
                 }
                 Elem(prefix = "atom", label = "link", attributes = attributes, scope = TopScope, minimizeEmpty = true )
-
+        object Published extends Parser[Published](Some(Namespace.Atom),"published"):
+            def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Published] ) =
+              try
+                val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
+                val extraAttributes = elem.attributes
+                val asLastParsed = if in(retainParsed) then Some(elem) else None
+                ( Nil, Some( Published(ZonedDateTime.parse( elem.text ), reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
+              catch
+                case NonFatal(t) => ( Seq( s"Could not parse text '${elem.text}' as timestamp: $t"), None )
+            def apply( instant : Instant ) : Published = apply( instant.atZone(UTC) )
+        case class Published( zdt : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Published]:
+            override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+            override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="updated", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatRFC3339ToSecond(zdt)))
         object Summary extends Parser[Summary](Some(Namespace.Atom),"summary"):
           def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Summary] ) =
             val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
@@ -493,7 +506,6 @@ object Element:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="summary", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
-
         object Title extends Parser[Title](Some(Namespace.Atom),"title"):
           def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Title] ) =
             val reverseExtras = allChildElemsAsReverseExtras(elem, retainParsed)
@@ -504,7 +516,6 @@ object Element:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="title", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
-
         object Updated extends Parser[Updated](Some(Namespace.Atom),"updated"):
             def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Updated] ) =
               try
@@ -631,15 +642,26 @@ object Element:
       object Initial extends Parser[Initial](Some(Namespace.Iffy),"initial"):
         def fromChecked( elem : Elem, retainParsed : Kinds ) : ( Seq[String], Option[Initial] ) =
           val warnings = Vector.newBuilder[String]
-          val creators =
-            val (ws, cs) = DublinCore.Creator.extractFromChildren(elem, retainParsed)
-            warnings ++= ws
-            cs
-          val reverseExtras = childElemsBeyondAsReverseExtras( "dc:creator" )(elem, retainParsed)
+          val titles = Atom.Title.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val links = Atom.Link.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val guids = Iffy.OriginalGuid.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val publisheds = Atom.Published.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val creators = DublinCore.Creator.extractFromChildrenAndWarn(warnings)(elem, retainParsed)
+          val reverseExtras = childElemsBeyondAsReverseExtras( "atom:title"->1, "atom:link"->1, "iffy:original-guid"->1, "atom:published"->1, "dc:creator" )(elem, retainParsed)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(retainParsed) then Some(elem) else None
-          ( warnings.result, Some( Initial( creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
-      case class Initial(creators : Seq[DublinCore.Creator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Initial]:
+          ( warnings.result, Some( Initial( titles.headOption, links.headOption, guids.headOption, publisheds.headOption, creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) )
+      case class Initial(
+        title : Option[Atom.Title],
+        link : Option[Atom.Link],
+        guid : Option[OriginalGuid],
+        published : Option[Atom.Published],
+        creators : Seq[DublinCore.Creator],
+        namespaces : List[Namespace] = Nil,
+        reverseExtras : List[Extra] = Nil,
+        extraAttributes : MetaData = Null,
+        asLastParsed : Option[Elem] = None
+      ) extends Element[Initial]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", creators.map(_.toElem)*)
