@@ -417,7 +417,7 @@ object Element:
 
     object Atom:
         object LinkRelation:
-          def lenientParse( string : String ) : Option[LinkRelation] = LinkRelation.values.find( _.toString.equalsIgnoreCase( string ) )
+          def lenientParse( string : String ) : Option[LinkRelation] = LinkRelation.values.find( _.toString.equalsIgnoreCase( string.trim ) )
         enum LinkRelation:
             case alternate, related, self, enclosure, via
 
@@ -585,7 +585,7 @@ object Element:
     object Iffy:
       object Completeness:
         object Value:
-          def lenientParse( string : String ) : Option[Value] = Value.values.find( _.toString.equalsIgnoreCase( string ) )
+          def lenientParse( string : String ) : Option[Value] = Value.values.find( _.toString.equalsIgnoreCase( string.trim ) )
         enum Value:
           case Ping, Metadata, Content, Media
       case class Completeness( value : Completeness.Value, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Completeness]:
@@ -606,7 +606,7 @@ object Element:
           Elem(prefix = "iffy", label = "diff", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
       object HintAnnounce extends Parser[HintAnnounce](Some(Namespace.Iffy),"hint-announce"):
         object Policy:
-          def lenientParse( string : String ) : Option[Policy] = Policy.values.find( _.toString.equalsIgnoreCase( string ) )
+          def lenientParse( string : String ) : Option[Policy] = Policy.values.find( _.toString.equalsIgnoreCase( string.trim ) )
         enum Policy:
           case Always, Never, Piggyback
 
@@ -686,7 +686,7 @@ object Element:
             Elem(prefix = "iffy", label = "policy", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
       object Provenance extends Parser[Provenance](Some(Namespace.Iffy),"provenance"):
         object Shape:
-          def lenientParse( string : String ) : Option[Shape] = Shape.values.find( _.toString.equalsIgnoreCase( string ) )
+          def lenientParse( string : String ) : Option[Shape] = Shape.values.find( _.toString.equalsIgnoreCase( string.trim ) )
         enum Shape:
           case sequence, merge
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem, Provenance)] ) =
@@ -748,13 +748,17 @@ object Element:
           Elem(prefix = "iffy", label = "revision", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
       object Synthetic extends Parser[Synthetic](Some(Namespace.Iffy),"synthetic"):
         object KnownType:
-          val ItemUpdateFeed     = "ItemUpdateFeed"
-          val UpdateAnnouncement = "UpdateAnnouncement"
-          val UpdateCumulation   = "UpdateCumulation"
+          def lenientParse( string : String ) : Option[KnownType] = KnownType.values.find( _.toString.equalsIgnoreCase( string.trim ) )
+        enum KnownType:
+          case ItemUpdateFeed, UpdateAnnouncement, UpdateCumulation
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Synthetic)] ) =
           val warnings = Vector.newBuilder[String]
           val used = Vector.newBuilder[Elem]
           val `type` = Iffy.Type.extractFromChildrenWarnUseFirst(warnings,used)(elem)
+          `type` match
+            case Some(tpe) if KnownType.lenientParse(tpe.value).isEmpty =>
+              warnings += s"iffy:synthetic type '$tpe' is not a type we know. iffy:synthetic does accept unknown types, so we have accepted '${tpe}'."
+            case _ => /* ignore */  
           val reverseExtras = childElemsAsReverseExtrasExcept( used.result )(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
