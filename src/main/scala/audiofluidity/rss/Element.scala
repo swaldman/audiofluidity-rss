@@ -432,7 +432,9 @@ object Element:
             val warnings = Vector.newBuilder[String]
             val used = Vector.newBuilder[Elem]
             val reverseExtras = allChildElemsAsReverseExtras(elem)
-            val extraAttributes = attributesBeyond("href","rel","type","hreflang","title","length")( elem.attributes )
+
+            var extraAttributes = attributesBeyond("href","rel","type","hreflang","title","length")( elem.attributes )
+
             val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
             val mbHref = getAttr(elem.attributes)("href")
             val mbRel = getAttr(elem.attributes)("rel").map( raw => LinkRelation.lenientParse(raw).getOrElse( toIri(raw) ) )
@@ -441,6 +443,7 @@ object Element:
               getAttr(elem.attributes)("hreflang").flatMap: raw =>
                 LanguageCode.byRendered.get(raw).orElse:
                   warnings += "Could not parse atom:link hreflang '${raw}' to a known language code. Omitting!"
+                  extraAttributes = prependAttribute("hreflang",raw,extraAttributes)
                   None
             val mbTitle = getAttr(elem.attributes)("title")
             val mbLength =
@@ -449,6 +452,7 @@ object Element:
                 catch
                   case NonFatal(t) =>
                     warnings += s"Failed to parse atom:link length '${raw}' to a valid long integer. Omitting! (${t})"
+                    extraAttributes = prependAttribute("length",raw,extraAttributes)
                     None
             mbHref match
               case Some(href) =>
@@ -688,6 +692,9 @@ object Element:
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem, Provenance)] ) =
           val warnings = Vector.newBuilder[String]
           val used = Vector.newBuilder[Elem]
+
+          var extraAttributes = attributesBeyond("shape")(elem.attributes)
+
           val linksAndProvenances : Seq[Atom.Link|Iffy.Provenance] =
             elem.child.collect { node =>
               node match
@@ -696,12 +703,12 @@ object Element:
                 case _                                      => None
             }.flatten
           val shape =
-            elem.attributes("shape").flatMap: raw =>
-              Shape.lenientParse(raw.text.trim).orElse:
+            getAttr(elem.attributes)("shape").flatMap: raw =>
+              Shape.lenientParse(raw).orElse:
+                extraAttributes = prependAttribute("shape",raw,extraAttributes)
                 warnings += "Found unexpected iffy:provenance shape value: ${str}. Skipping."
                 None
           val reverseExtras = childElemsAsReverseExtrasExcept( used.result )(elem)
-          val extraAttributes = attributesBeyond("shape")(elem.attributes)
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
           ( warnings.result, Some( ( elem, Provenance( linksAndProvenances, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Provenance(

@@ -3,8 +3,7 @@ package audiofluidity.rss
 import audiofluidity.rss.util.defaultNamespaceUri
 
 import scala.annotation.tailrec
-import scala.xml.{Node,NodeSeq,Elem}
-import scala.xml.MetaData
+import scala.xml.{MetaData,Node,NodeSeq,Elem,PrefixedAttribute,UnprefixedAttribute}
 import scala.xml.Attribute
 
 object ParserUtils extends ParserUtils
@@ -63,6 +62,14 @@ trait ParserUtils:
           !expected(tup)
         case _ => false
 
+  def prependAttribute( prefixOrNull : String, key : String, value : String, md : MetaData ) : MetaData =
+    if prefixOrNull == null then
+      new UnprefixedAttribute(key, value, md)
+    else
+      new PrefixedAttribute(prefixOrNull, key, value, md)
+
+  def prependAttribute( key : String, value : String, md : MetaData ) : MetaData =
+    prependAttribute(null, key, value, md)
 
   def getAttr( md : MetaData )( key : String ) : Option[String] =
     Option( md( key ) ).map( _.text.trim )
