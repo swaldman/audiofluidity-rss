@@ -14,14 +14,33 @@ trait ParserUtils:
   // XXX: We're not using pconfig yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
   def allChildElemsAsReverseExtras( elem : Elem )( using pconfig : Parser.Config ) : List[Element.Extra]
-    = elemsBeyondAsReverseExtras()( elem.child.toList )
+    = elem.child.collect{ case e : Elem => e }.foldLeft(Nil:List[Element.Extra])((accum,next) => Element.Extra(next)::accum)
 
-  // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
+  def elemsExceptAsReverseExtras( nonExtra : Vector[Elem] )( nlist : List[Node] )( using pconfig : Parser.Config ) : List[Element.Extra] =
+    _elemsExceptAsReverseExtras( nonExtra, Nil )( nlist )
+
+  @tailrec
+  private def _elemsExceptAsReverseExtras( nonExtra : Vector[Elem], accum : List[Element.Extra] )( nlist : List[Node] )( using pconfig : Parser.Config ) : List[Element.Extra] =
+    nlist match
+      case Nil => accum
+      case next :: rest =>
+        next match
+          case elem : Elem =>
+            val loc = nonExtra.indexOf(elem)
+            loc match
+              case -1 => _elemsExceptAsReverseExtras( nonExtra, Element.Extra(elem)::accum )( rest )
+              case  n =>
+                val excised = nonExtra.slice(0,n) ++ nonExtra.drop(n+1)
+                _elemsExceptAsReverseExtras( excised, accum )( rest )
+          case _ =>
+            _elemsExceptAsReverseExtras( nonExtra, accum )( rest )
+
+  // XXX: We're not using pconfig yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
   def childElemsBeyondAsReverseExtras( expected : (Tuple2[String,Int]|String)* )( elem : Elem )( using pconfig : Parser.Config ) : List[Element.Extra]
     = elemsBeyondAsReverseExtras(expected*)( elem.child.toList )
 
-  // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
+  // XXX: We're not using pconfig yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
   def elemsBeyondAsReverseExtras( expected : (Tuple2[String,Int]|String)* )( nlist : List[Node] )( using pconfig : Parser.Config ) : List[Element.Extra] =
     def tuplize( fullLabel : String ) : Tuple2[Option[Namespace],String] =
@@ -42,7 +61,7 @@ trait ParserUtils:
 
     tuplizedElemsBeyondAsReverseExtras( parsedExpected* )(nlist)
 
-  // XXX: We're not using retainParse yet, but eventually, when we've implemented a lot of parsers,
+  // XXX: We're not using pconfig yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
   def tuplizedElemsBeyondAsReverseExtras( expected : (Tuple2[Tuple2[Option[Namespace],String],Int]|Tuple2[Option[Namespace],String])* )( nlist : List[Node] )( using pconfig : Parser.Config ) : List[Element.Extra] =
     val _expected =
