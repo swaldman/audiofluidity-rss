@@ -758,7 +758,7 @@ object Element:
           `type` match
             case Some(tpe) if KnownType.lenientParse(tpe.value).isEmpty =>
               warnings += s"iffy:synthetic type '$tpe' is not a type we know. iffy:synthetic does accept unknown types, so we have accepted '${tpe}'."
-            case _ => /* ignore */  
+            case _ => /* ignore */
           val reverseExtras = childElemsAsReverseExtrasExcept( used.result )(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
@@ -954,16 +954,23 @@ object Element:
     trait Parser[T <: Element[T]]( val namespace : Option[Namespace], val label : String ) extends ParserUtils:
       def _fromChecked( elem : Elem )(using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,T)] )
       final def fromChecked( elem : Elem )(using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,T)] ) =
-        val main = _fromChecked( elem )
-        main._2 match
-          case Some(_) => main
-          case None =>
-            pconfig.fixers.find(this) match
-              case Some(fixer) =>
-                val fixed = fixer( elem, pconfig )
-                ( main._1 ++ fixed._1, fixed._2 )
-              case None =>
-                main
+        def preempt = pconfig.preempts.find(this).map( _( elem, pconfig ) )
+        def main = Some( _fromChecked( elem ) )
+        def fallback = pconfig.fallbacks.find(this).map( _( elem, pconfig ) )
+
+        def attempt( wcollector : mutable.Growable[String] )( step : Option[ ( Seq[String], Option[(Elem, T)] ) ] ) : Option[(Elem, T)] =
+          step match
+            case Some( warnings, opt ) =>
+              wcollector ++= warnings
+              opt
+            case None => None
+
+
+        val warnings = Vector.newBuilder[String]
+        val result = attempt(warnings)(preempt) orElse attempt(warnings)(main) orElse attempt(warnings)(fallback)
+
+        ( warnings.result, result )
+
       def check( elem : Elem ) : Boolean =
         elem.label == label && namespace.fold( defaultNamespaceUri(elem.scope) == None )( ns => ns.belongsLenient(elem) )
       def maybeFrom( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,T)] ) =
