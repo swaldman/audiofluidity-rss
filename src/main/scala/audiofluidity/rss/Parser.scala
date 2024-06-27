@@ -13,7 +13,7 @@ object Parser:
           map.get(eparser).map( _.asInstanceOf[Fixer[T]] )
     trait Finder:
       def find[T <: Element[T]]( eparser : Element.Parser[T] ) : Option[Fixer[T]]
-  type Fixer[T <: Element[T]] = (Elem, Parser.Config) => ( Seq[String], Option[T] )
+  type Fixer[T <: Element[T]] = (Elem, Parser.Config) => ( Seq[String], Option[(Elem,T)] )
   case class Config (
     fixers       : Fixer.Finder,
     retainParsed : Element.Kinds
