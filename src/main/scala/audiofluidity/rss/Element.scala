@@ -433,7 +433,7 @@ object Element:
             val used = Vector.newBuilder[Elem]
             val reverseExtras = allChildElemsAsReverseExtras(elem)
 
-            var extraAttributes = attributesBeyond("href","rel","type","hreflang","title","length")( elem.attributes )
+            var extraAttributes = attributesExcept("href","rel","type","hreflang","title","length")( elem.attributes )
 
             val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
             val mbHref = getAttr(elem.attributes)("href")
@@ -693,7 +693,7 @@ object Element:
           val warnings = Vector.newBuilder[String]
           val used = Vector.newBuilder[Elem]
 
-          var extraAttributes = attributesBeyond("shape")(elem.attributes)
+          var extraAttributes = attributesExcept("shape")(elem.attributes)
 
           val linksAndProvenances : Seq[Atom.Link|Iffy.Provenance] =
             elem.child.collect { node =>

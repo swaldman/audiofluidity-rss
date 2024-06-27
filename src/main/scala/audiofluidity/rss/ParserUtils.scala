@@ -43,7 +43,7 @@ trait ParserUtils:
     * @param fullKeys unprefixed keys or colon delimited prefix:key
     * @return
     */
-  def attributesBeyond( fullKeys : String* )( md : MetaData ) : MetaData =
+  def attributesExcept( fullKeys : String* )( md : MetaData ) : MetaData =
     val expected =
       fullKeys.map { fk =>
         val colonIndex = fk.lastIndexOf(':')
@@ -52,9 +52,9 @@ trait ParserUtils:
         else
           ( null, fk )
       }.toSet
-    _attributesBeyond(expected)(md)
+    _attributesExcept(expected)(md)
 
-  def _attributesBeyond( expected : Set[(String,String)] )( md : MetaData ) : MetaData =
+  def _attributesExcept( expected : Set[(String,String)] )( md : MetaData ) : MetaData =
     md.filter: item =>
       item match
         case attr : Attribute =>
