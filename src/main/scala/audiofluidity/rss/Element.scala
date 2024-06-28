@@ -799,16 +799,17 @@ object Element:
               val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
               ( warnings.result, Some( ( elem, Update( u, summary, revision, diff, title, creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Update(
-        updated : Atom.Updated,
-        summary : Option[Atom.Summary]     = None,
-        revision : Option[Revision]        = None,
-        diff : Option[Diff]                = None,
-        title : Option[Atom.Title]         = None,
-        creators : Seq[DublinCore.Creator] = Nil,
-        namespaces : List[Namespace]       = Nil,
-        reverseExtras : List[Extra]        = Nil,
-        extraAttributes : MetaData         = Null,
-        asLastParsed : Option[Elem]        = None
+        updated         : Atom.Updated,
+        summary         : Option[Atom.Summary]     = None,
+        revision        : Option[Revision]         = None,
+        diff            : Option[Diff]             = None,
+        title           : Option[Atom.Title]       = None,
+        creators        : Seq[DublinCore.Creator]  = Nil,
+        initial         : Option[Element[Initial]] = None,
+        namespaces      : List[Namespace]          = Nil,
+        reverseExtras   : List[Extra]              = Nil,
+        extraAttributes : MetaData                 = Null,
+        asLastParsed    : Option[Elem]             = None
       ) extends Element[Update]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
