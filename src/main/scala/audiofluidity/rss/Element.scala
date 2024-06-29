@@ -661,7 +661,7 @@ object Element:
       ) extends Element[Initial]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
-        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", creators.map(_.toElem)*)
+        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", (title++link++guid++published++creators).toSeq.map(_.toElem)*)
       object OriginalGuid extends Parser[OriginalGuid](Some(Namespace.Iffy),"original-guid"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,OriginalGuid)] ) =
           val reverseExtras = allChildElemsAsReverseExtras(elem)
@@ -813,7 +813,7 @@ object Element:
       ) extends Element[Update]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
-        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update", (Seq(updated)++summary++revision++diff++creators).map(_.toElem)*)
+        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update", (Seq(updated)++summary++revision++diff++creators++initial).map(_.toElem)*)
       case class UpdateHistory( updates : Seq[Update], initial : Option[Initial], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[UpdateHistory]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
