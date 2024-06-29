@@ -500,7 +500,7 @@ object Element:
         case class Published( zdt : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Published]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
-            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="updated", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatRFC3339ToSecond(zdt)))
+            override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="published", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatRFC3339ToSecond(zdt)))
         object Summary extends Parser[Summary](Some(Namespace.Atom),"summary"):
           override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Summary)] ) =
             val reverseExtras = allChildElemsAsReverseExtras(elem)
