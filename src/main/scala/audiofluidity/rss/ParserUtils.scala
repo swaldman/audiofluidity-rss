@@ -6,37 +6,96 @@ import scala.annotation.tailrec
 import scala.xml.{MetaData,Node,NodeSeq,Elem,PrefixedAttribute,UnprefixedAttribute}
 import scala.xml.Attribute
 
-object ParserUtils extends ParserUtils
+object ParserUtils extends ParserUtils:
+  val ParserForKind : Map[Element.Kind,Element.Parser[?]] =
+    val ElementParsers : List[Element.Parser[?]] =
+      Element.Atom.Link          ::
+      Element.Atom.Published     ::
+      Element.Atom.Summary       ::
+      Element.Atom.Title         ::
+      Element.Atom.Updated       ::
+      Element.DublinCore.Creator ::
+      Element.Iffy.Diff          ::
+      Element.Iffy.HintAnnounce  ::
+      Element.Iffy.Initial       ::
+      Element.Iffy.OriginalGuid  ::
+      Element.Iffy.Policy        ::
+      Element.Iffy.Provenance    ::
+      Element.Iffy.Restriction   ::
+      Element.Iffy.Revision      ::
+      Element.Iffy.Synthetic     ::
+      Element.Iffy.Type          ::
+      Element.Iffy.Update        ::
+      Nil
+    ElementParsers
+      .map( parser => (parser.kind, parser) )
+      .toMap
+
 trait ParserUtils:
   private val UnknownNamespace = Namespace(Some("unknown"), "unknown:unknown")
 
-  // XXX: We're not using pconfig yet, but eventually, when we've implemented a lot of parsers,
-  //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
-  def allChildElemsAsReverseExtras( elem : Elem )( using pconfig : Parser.Config ) : List[Element.Extra]
-    = elem.child.collect{ case e : Elem => e }.foldLeft(Nil:List[Element.Extra])((accum,next) => Element.Extra(next)::accum)
+  def attemptFillInReverseExtras( reverseExtras : List[Element.Extra] )( using pconfig : Parser.Config ) : ( Seq[String], List[Element.Extra] )=
+    val chunkyUnreversed =
+      reverseExtras.foldLeft( Tuple2( Nil : List[Seq[String]], Nil : List[Element.Extra] ) ): (accum, next) =>
+        val ( warnings, extra ) = attemptFillInExtra( next )
+        ( warnings :: accum(0), extra :: accum(1) )
+    ( chunkyUnreversed(0).reverse.toVector.flatten, chunkyUnreversed(1).reverse )
 
-  def reverseExtrasExcept( nonExtra : Vector[Elem] )( nlist : List[Node] )( using pconfig : Parser.Config ) : List[Element.Extra] =
-    _reverseExtrasExcept( nonExtra, Nil )( nlist )
+  def attemptFillInExtra( extra : Element.Extra )( using pconfig : Parser.Config ) : ( Seq[String], Element.Extra ) =
+    extra.mbSourceElement match
+      case Some(_) => ( Nil, extra )
+      case None    => attemptFillInExtra( extra.elem )
+
+  def attemptFillInExtra( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Element.Extra ) =
+    val mbKind = Element.Kind.forElem( elem )
+    mbKind match
+      case None =>
+        val warnings = Seq("Could not fill-in extra for elem, could not recognize its kind: " + elem)
+        ( warnings, Element.Extra(elem) )
+      case Some( kind ) =>
+        val mbParser = ParserUtils.ParserForKind.get( kind )
+        mbParser match
+          case Some( parser ) =>
+            val ( ws, mbElement ) = parser.fromChecked( elem )
+            mbElement match
+              case Some( Tuple2(_, element) ) => ( ws, Element.Extra( Some(element), elem ) )
+              case None =>
+                val warnings = ws :+ ("Could not fill-in extra for elem, parse failed: " + elem)
+                ( warnings, Element.Extra(elem) )
+          case None =>
+            val warnings = Seq("Could not fill-in extra elem, no suitable parser found for kind: " + kind)
+            ( warnings, Element.Extra(elem) )
+
+  def allChildElemsAsReverseExtras( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], List[Element.Extra] ) =
+    val childElems = elem.child.collect{ case e : Elem => e }
+    childElems.foldLeft( Tuple2( Vector.empty[String], Nil : List[Element.Extra] ) ): (accum, next) =>
+      val ( warnings, extra ) = attemptFillInExtra( elem )
+      ( accum(0) ++ warnings, extra :: accum(1) )
+
+  def reverseExtrasExcept( nonExtra : Vector[Elem] )( nlist : List[Node] )( using pconfig : Parser.Config ) : ( Seq[String], List[Element.Extra] ) =
+    _reverseExtrasExcept( nonExtra, Vector.empty[String], Nil )( nlist )
 
   @tailrec
-  private def _reverseExtrasExcept( nonExtra : Vector[Elem], accum : List[Element.Extra] )( nlist : List[Node] )( using pconfig : Parser.Config ) : List[Element.Extra] =
+  private def _reverseExtrasExcept( nonExtra : Vector[Elem], warnings : Vector[String], accum : List[Element.Extra] )( nlist : List[Node] )( using pconfig : Parser.Config ) : ( Seq[String], List[Element.Extra] ) =
     nlist match
-      case Nil => accum
+      case Nil => ( warnings, accum )
       case next :: rest =>
         next match
           case elem : Elem =>
             val loc = nonExtra.indexOf(elem)
             loc match
-              case -1 => _reverseExtrasExcept( nonExtra, Element.Extra(elem)::accum )( rest )
-              case  n =>
+              case -1 =>
+                val (ws, extra) = attemptFillInExtra( elem )
+                _reverseExtrasExcept( nonExtra, warnings++ws, extra::accum )( rest )
+              case n =>
                 val excised = nonExtra.slice(0,n) ++ nonExtra.drop(n+1)
-                _reverseExtrasExcept( excised, accum )( rest )
+                _reverseExtrasExcept( excised, warnings, accum )( rest )
           case _ =>
-            _reverseExtrasExcept( nonExtra, accum )( rest )
+            _reverseExtrasExcept( nonExtra, warnings, accum )( rest )
 
   // XXX: We're not using pconfig yet, but eventually, when we've implemented a lot of parsers,
   //      we'll try to fill-in the first part of the Element.Extras we create, and it will matter there
-  def childElemsAsReverseExtrasExcept( nonExtra : Vector[Elem] )( elem : Elem )( using pconfig : Parser.Config ) : List[Element.Extra] =
+  def childElemsAsReverseExtrasExcept( nonExtra : Vector[Elem] )( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], List[Element.Extra] ) =
     reverseExtrasExcept(nonExtra)( elem.child.toList )
 
   /**

@@ -431,7 +431,7 @@ object Element:
           override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Link)] ) =
             val warnings = Vector.newBuilder[String]
             val used = Vector.newBuilder[Elem]
-            val reverseExtras = allChildElemsAsReverseExtras(elem)
+            val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
 
             var extraAttributes = attributesExcept("href","rel","type","hreflang","title","length")( elem.attributes )
 
@@ -489,13 +489,17 @@ object Element:
                 Elem(prefix = "atom", label = "link", attributes = attributes, scope = TopScope, minimizeEmpty = true )
         object Published extends Parser[Published](Some(Namespace.Atom),"published"):
             override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Published)] ) =
+              val warnings = Vector.newBuilder[String]
+              val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
+              val extraAttributes = elem.attributes
+              val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
               try
-                val reverseExtras = allChildElemsAsReverseExtras(elem)
-                val extraAttributes = elem.attributes
-                val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-                ( Nil, Some( ( elem, Published(ZonedDateTime.parse( elem.text ), reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+                val zdt = ZonedDateTime.parse( elem.text )
+                ( warnings.result, Some( ( elem, Published(zdt, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
               catch
-                case NonFatal(t) => ( Seq( s"Could not parse text '${elem.text}' as timestamp: $t"), None )
+                case NonFatal(t) =>
+                  warnings += s"Could not parse text '${elem.text}' as timestamp: $t"
+                  ( warnings.result, None )
             def apply( instant : Instant ) : Published = apply( instant.atZone(UTC) )
         case class Published( zdt : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Published]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
@@ -503,33 +507,39 @@ object Element:
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="published", attributes1=Null, scope=TopScope, minimizeEmpty=true, new Text(formatRFC3339ToSecond(zdt)))
         object Summary extends Parser[Summary](Some(Namespace.Atom),"summary"):
           override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Summary)] ) =
-            val reverseExtras = allChildElemsAsReverseExtras(elem)
+            val warnings = Vector.newBuilder[String]
+            val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
             val extraAttributes = elem.attributes
             val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-            ( Nil, Some( ( elem, Summary( elem.text , reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+            ( warnings.result, Some( ( elem, Summary( elem.text , reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
         case class Summary( text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Summary]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="summary", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
         object Title extends Parser[Title](Some(Namespace.Atom),"title"):
           override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Title)] ) =
-            val reverseExtras = allChildElemsAsReverseExtras(elem)
+            val warnings = Vector.newBuilder[String]
+            val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
             val extraAttributes = elem.attributes
             val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-            ( Nil, Some( ( elem, Title( elem.text , reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+            ( warnings.result, Some( ( elem, Title( elem.text , reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
         case class Title( text : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Title]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
             override def toUndecoratedElem : Elem = new Elem(prefix="atom", label="title", attributes1=Null, scope=TopScope, minimizeEmpty=true, new PCData(text))
         object Updated extends Parser[Updated](Some(Namespace.Atom),"updated"):
             override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Updated)] ) =
+              val warnings = Vector.newBuilder[String]
+              val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
+              val extraAttributes = elem.attributes
+              val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
               try
-                val reverseExtras = allChildElemsAsReverseExtras(elem)
-                val extraAttributes = elem.attributes
-                val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-                ( Nil, Some( ( elem, Updated(ZonedDateTime.parse( elem.text ), reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+                val zdt = ZonedDateTime.parse( elem.text )
+                ( warnings.result, Some( ( elem, Updated(zdt, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
               catch
-                case NonFatal(t) => ( Seq( s"Could not parse text '${elem.text}' as timestamp: $t"), None )
+                case NonFatal(t) =>
+                  warnings += s"Could not parse text '${elem.text}' as timestamp: $t"
+                  ( warnings.result, None )
             def apply( instant : Instant ) : Updated = apply( instant.atZone(UTC) )
         case class Updated( zdt : ZonedDateTime, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None ) extends Element[Updated]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
@@ -545,10 +555,11 @@ object Element:
     object DublinCore:
         object Creator extends Parser[Creator](Some(Namespace.DublinCore),"creator"):
           override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Creator)] ) =
-            val reverseExtras = allChildElemsAsReverseExtras(elem)
+            val warnings = Vector.newBuilder[String]
+            val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
             val extraAttributes = elem.attributes
             val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-            ( Nil, Some( ( elem, Creator( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+            ( warnings.result, Some( ( elem, Creator( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
         case class Creator(creator : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Creator]:
             override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
             override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -595,10 +606,11 @@ object Element:
           Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
       object Diff extends Parser[Diff](Some(Namespace.Iffy),"diff"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Diff)] ) =
-          val reverseExtras = allChildElemsAsReverseExtras(elem)
+          val warnings = Vector.newBuilder[String]
+          val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-          ( Nil, Some( ( elem, Diff( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+          ( warnings.result, Some( ( elem, Diff( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Diff( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Diff]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -615,7 +627,7 @@ object Element:
           val used = Vector.newBuilder[Elem]
           val mbPolicy = Iffy.Policy.extractFromChildrenWarnUseFirst( warnings, used )( elem )
           val mbRestriction = Iffy.Restriction.extractFromChildrenWarnUseFirst( warnings, used )( elem )
-          val reverseExtras = childElemsAsReverseExtrasExcept(used.result)(elem)
+          val reverseExtras = childElemsAsReverseExtrasExcept(warnings)(used.result)(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
           mbPolicy match
@@ -644,7 +656,7 @@ object Element:
           val guid = Iffy.OriginalGuid.extractFromChildrenWarnUseFirst(warnings,used)(elem)
           val published = Atom.Published.extractFromChildrenWarnUseFirst(warnings,used)(elem)
           val creators = DublinCore.Creator.extractFromChildrenWarnUseAll(warnings,used)(elem)
-          val reverseExtras = childElemsAsReverseExtrasExcept(used.result)( elem )
+          val reverseExtras = childElemsAsReverseExtrasExcept(warnings)(used.result)( elem )
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
           ( warnings.result, Some( ( elem, Initial( title, link, guid, published, creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
@@ -664,10 +676,11 @@ object Element:
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", (title++link++guid++published++creators).toSeq.map(_.toElem)*)
       object OriginalGuid extends Parser[OriginalGuid](Some(Namespace.Iffy),"original-guid"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,OriginalGuid)] ) =
-          val reverseExtras = allChildElemsAsReverseExtras(elem)
+          val warnings = Vector.newBuilder[String]
+          val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-          ( Nil, Some( ( elem, OriginalGuid( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+          ( warnings.result, Some( ( elem, OriginalGuid( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class OriginalGuid( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[OriginalGuid]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -675,10 +688,11 @@ object Element:
           Elem(prefix = "iffy", label = "original-guid", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
       object Policy extends Parser[Policy](Some(Namespace.Iffy),"policy"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Policy)] ) =
-          val reverseExtras = allChildElemsAsReverseExtras(elem)
+          val warnings = Vector.newBuilder[String]
+          val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-          ( Nil, Some( ( elem, Policy( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+          ( warnings.result, Some( ( elem, Policy( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Policy( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Policy]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -708,7 +722,7 @@ object Element:
                 extraAttributes = prependAttribute("shape",raw,extraAttributes)
                 warnings += "Found unexpected iffy:provenance shape value: ${str}. Skipping."
                 None
-          val reverseExtras = childElemsAsReverseExtrasExcept( used.result )(elem)
+          val reverseExtras = childElemsAsReverseExtrasExcept(warnings)( used.result )(elem)
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
           ( warnings.result, Some( ( elem, Provenance( linksAndProvenances, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Provenance(
@@ -726,10 +740,11 @@ object Element:
             Elem(prefix = "iffy", label = "provenance", attributes = attributes, scope = TopScope, minimizeEmpty = true, child = linksAndProvenances.map(_.toElem)*)
       object Restriction extends Parser[Restriction](Some(Namespace.Iffy),"restriction"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Restriction)] ) =
-          val reverseExtras = allChildElemsAsReverseExtras( elem )
+          val warnings = Vector.newBuilder[String]
+          val reverseExtras = allChildElemsAsReverseExtras(warnings)( elem )
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-          ( Nil, Some( ( elem, Restriction( reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+          ( warnings.result, Some( ( elem, Restriction( reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Restriction( namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Restriction]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -737,10 +752,11 @@ object Element:
             Elem(prefix = "iffy", label = "restriction", attributes = Null, scope = TopScope, minimizeEmpty = true)
       object Revision extends Parser[Revision](Some(Namespace.Iffy),"revision"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Revision)] ) =
-          val reverseExtras = allChildElemsAsReverseExtras(elem)
+          val warnings = Vector.newBuilder[String]
+          val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-          ( Nil, Some( ( elem, Revision( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+          ( warnings.result, Some( ( elem, Revision( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Revision( url : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Revision]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -759,7 +775,7 @@ object Element:
             case Some(tpe) if KnownType.lenientParse(tpe.value).isEmpty =>
               warnings += s"iffy:synthetic type '$tpe' is not a type we know. iffy:synthetic does accept unknown types, so we have accepted '${tpe}'."
             case _ => /* ignore */
-          val reverseExtras = childElemsAsReverseExtrasExcept( used.result )(elem)
+          val reverseExtras = childElemsAsReverseExtrasExcept(warnings)( used.result )(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
           ( warnings.result, Some( ( elem, Synthetic( `type`, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
@@ -770,10 +786,11 @@ object Element:
             Elem(prefix = "iffy", label = "synthetic", attributes = Null, scope = TopScope, minimizeEmpty = true, child = `type`.map(_.toElem).toSeq* )
       object Type extends Parser[Type](Some(Namespace.Iffy),"type"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Type)] ) =
-          val reverseExtras = allChildElemsAsReverseExtras(elem)
+          val warnings = Vector.newBuilder[String]
+          val reverseExtras = allChildElemsAsReverseExtras(warnings)(elem)
           val extraAttributes = elem.attributes
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-          ( Nil, Some( ( elem, Type( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+          ( warnings.result, Some( ( elem, Type( elem.text.trim, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Type( value : String, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Type]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
@@ -794,7 +811,7 @@ object Element:
               warnings += "Required atom:updated element is missing from iffy.updated. Skipping."
               ( warnings.result, None )
             case Some(u) =>  
-              val reverseExtras = childElemsAsReverseExtrasExcept( used.result )(elem)
+              val reverseExtras = childElemsAsReverseExtrasExcept(warnings)( used.result )(elem)
               val extraAttributes = elem.attributes
               val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
               ( warnings.result, Some( ( elem, Update( u, summary, revision, diff, title, creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
@@ -814,7 +831,14 @@ object Element:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update", (Seq(updated)++summary++revision++diff++creators++initial).map(_.toElem)*)
-      case class UpdateHistory( updates : Seq[Update], initial : Option[Initial], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[UpdateHistory]:
+      case class UpdateHistory(
+        updates : Seq[Update],
+        initial : Option[Initial],
+        namespaces : List[Namespace] = Nil,
+        reverseExtras : List[Extra]  = Nil,
+        extraAttributes : MetaData   = Null,
+        asLastParsed : Option[Elem]  = None
+      ) extends Element[UpdateHistory]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="update-history", (updates++initial).map(_.toElem)* )
@@ -954,6 +978,7 @@ object Element:
 
     trait Parser[T <: Element[T]]( val namespace : Option[Namespace], val label : String ) extends ParserUtils:
       def _fromChecked( elem : Elem )(using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,T)] )
+
       final def fromChecked( elem : Elem )(using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,T)] ) =
         def preempt = pconfig.preempts.find(this).map( _( elem, pconfig ) )
         def main = Some( _fromChecked( elem ) )
@@ -1015,6 +1040,18 @@ object Element:
         useFirst(used)(extractFromChildrenAndWarn(warnings)(parent))
       def maybeFromWarnUse(warnings : mutable.Growable[String], used : mutable.Growable[Elem])( elem : Elem )( using pconfig : Parser.Config ) : Option[T] =
         useMaybe(used)(maybeFromAndWarn(warnings)(elem))
+      def childElemsAsReverseExtrasExcept( warnings : mutable.Growable[String] )( used : Vector[Elem] )( elem : Elem )( using pconfig : Parser.Config ) : List[Extra] =
+        val (ws, elems) = childElemsAsReverseExtrasExcept( used )( elem )
+        warnings ++= ws
+        elems
+      def reverseExtrasExcept( warnings : mutable.Growable[String] )( nonExtra : Vector[Elem] )( nlist : List[Node] )( using pconfig : Parser.Config ) : List[Element.Extra] =
+        val ( ws, rextras ) = reverseExtrasExcept( nonExtra )( nlist )
+        warnings ++= ws
+        rextras
+      def allChildElemsAsReverseExtras( warnings : mutable.Growable[String] )( elem : Elem )( using pconfig : Parser.Config ) : List[Element.Extra] =
+        val ( ws, rextras ) = allChildElemsAsReverseExtras( elem )
+        warnings ++= ws
+        rextras
 
       val defaultPrefix = namespace.fold(null)(_.prefix)
       val kind = Kind( namespace, label )

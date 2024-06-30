@@ -1,5 +1,12 @@
 package audiofluidity.rss.iffy
 
-val DummyToPreventWarnings = new Object
+import audiofluidity.rss.*
 
-// def cumulateUpdates
+/*
+// expects input already to be filtered on synthetic type
+private def cumulateUpdateAnnouncements( updateAnnouncements : Seq[Element.Iffy.Synthetic] ) : ( Seq[String], Element.Iffy.Synthetic ) = // returns an UpdateCumulation
+  val byGuid =
+    updateAnnouncements.flatMap: ua =>
+      ua.
+
+*/
