@@ -5,10 +5,21 @@ import scala.collection.{immutable,mutable}
 import audiofluidity.rss.*
 import java.time.ZonedDateTime
 
-def cumulateUpdateAnnouncements( items : Seq[Element.Item] ) : ( Seq[String], Element.Iffy.Synthetic ) = // returns an UpdateCumulation
+def isSyntheticUpdateAnnouncement( item : Element.Item ) : Boolean =
+  val synthetics =
+    item.reverseExtras.collect { case Element.Extra( Some( synthetic : Element.Iffy.Synthetic ), _ ) => synthetic }
+  synthetics.size match
+    case 1 =>
+      synthetics.head.`type` match
+        case Some( tpe ) if tpe.value == Element.Iffy.Synthetic.KnownType.UpdateAnnouncement.toString => true
+        case _ => false
+    case n =>
+      false
+
+def cumulateSyntheticUpdateAnnouncementsFromAnyItems( anyItems : Seq[Element.Item] ) : ( Seq[String], Element.Iffy.Synthetic ) = // returns an UpdateCumulation
   val warnings = Vector.newBuilder[String]
   val updateAnnouncements =
-    items.flatMap: item =>
+    anyItems.flatMap: item =>
       val synthetics =
         item.reverseExtras.collect { case Element.Extra( Some( synthetic : Element.Iffy.Synthetic ), _ ) => synthetic }
       synthetics.size match
@@ -19,12 +30,17 @@ def cumulateUpdateAnnouncements( items : Seq[Element.Item] ) : ( Seq[String], El
         case n =>
           warnings += s"Found more than one ($n) synthetic element in item, can't interpret, skipping. " + item
           Nil
-  val ( ws, synth ) = _cumulateUpdateAnnouncements(updateAnnouncements)
+  val ( ws, synth ) = _cumulateSyntheticUpdateAnnouncements(updateAnnouncements)
   warnings ++= ws
   ( warnings.result, synth )
 
+def cumulateSyntheticUpdateAnnouncementsFromUpdateAnnounementItems( updateAnnouncementItems : Seq[Element.Item] ) : ( Seq[String], Element.Iffy.Synthetic ) = // returns an UpdateCumulation
+  val updateAnnouncementSynthetics = // XXX: Should be more careful and robust
+    updateAnnouncementItems.map( _.reverseExtras.collect { case Element.Extra( Some( synthetic : Element.Iffy.Synthetic ), _ ) => synthetic }.head )
+  _cumulateSyntheticUpdateAnnouncements( updateAnnouncementSynthetics )
+
 // expects input already to be filtered on synthetic type UpdateAnnouncement
-private def _cumulateUpdateAnnouncements( updateAnnouncements : Seq[Element.Iffy.Synthetic] ) : ( Seq[String], Element.Iffy.Synthetic ) = // returns an UpdateCumulation
+private def _cumulateSyntheticUpdateAnnouncements( updateAnnouncements : Seq[Element.Iffy.Synthetic] ) : ( Seq[String], Element.Iffy.Synthetic ) = // returns an UpdateCumulation
   val warnings = Vector.newBuilder[String]
   def updateElementToTup3( update : Element.Iffy.Update ) : Option[(String, Element.Iffy.Initial, Element.Iffy.Update)] = // ( guid, initial, initial-less update )
     val mbInitial = update.initial
