@@ -18,13 +18,13 @@ object ParserUtils extends ParserUtils:
       Element.Iffy.Diff          ::
       Element.Iffy.HintAnnounce  ::
       Element.Iffy.Initial       ::
-      Element.Iffy.Id            ::
       Element.Iffy.Policy        ::
       Element.Iffy.Provenance    ::
       Element.Iffy.Restriction   ::
       Element.Iffy.Revision      ::
       Element.Iffy.Synthetic     ::
       Element.Iffy.Type          ::
+      Element.Iffy.Uid           ::
       Element.Iffy.Update        ::
       Nil
     ElementParsers
