@@ -795,7 +795,7 @@ object Element:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
-          Elem(prefix = "iffy", label = "id", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
+          Elem(prefix = "iffy", label = "uid", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value))
       object Update extends Parser[Update](Some(Namespace.Iffy),"update"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Update)] ) =
           val warnings = Vector.newBuilder[String]
