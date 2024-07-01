@@ -18,7 +18,7 @@ object ParserUtils extends ParserUtils:
       Element.Iffy.Diff          ::
       Element.Iffy.HintAnnounce  ::
       Element.Iffy.Initial       ::
-      Element.Iffy.OriginalGuid  ::
+      Element.Iffy.Id            ::
       Element.Iffy.Policy        ::
       Element.Iffy.Provenance    ::
       Element.Iffy.Restriction   ::
