@@ -806,27 +806,28 @@ object Element:
           val diff = Iffy.Diff.extractFromChildrenWarnUseFirst(warnings,used)(elem)
           val title = Atom.Title.extractFromChildrenWarnUseFirst(warnings,used)(elem)
           val creators = DublinCore.Creator.extractFromChildrenWarnUseAll(warnings,used)(elem)
+          val initial = Iffy.Initial.extractFromChildrenWarnUseFirst(warnings,used)(elem)
           updated match
             case None =>
               warnings += "Required atom:updated element is missing from iffy.updated. Skipping."
               ( warnings.result, None )
-            case Some(u) =>  
+            case Some(u) =>
               val reverseExtras = childElemsAsReverseExtrasExcept(warnings)( used.result )(elem)
               val extraAttributes = elem.attributes
               val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
-              ( warnings.result, Some( ( elem, Update( u, summary, revision, diff, title, creators, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
+              ( warnings.result, Some( ( elem, Update( u, summary, revision, diff, title, creators, initial, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
       case class Update(
         updated         : Atom.Updated,
-        summary         : Option[Atom.Summary]     = None,
-        revision        : Option[Revision]         = None,
-        diff            : Option[Diff]             = None,
-        title           : Option[Atom.Title]       = None,
-        creators        : Seq[DublinCore.Creator]  = Nil,
-        initial         : Option[Element[Initial]] = None,
-        namespaces      : List[Namespace]          = Nil,
-        reverseExtras   : List[Extra]              = Nil,
-        extraAttributes : MetaData                 = Null,
-        asLastParsed    : Option[Elem]             = None
+        summary         : Option[Atom.Summary]    = None,
+        revision        : Option[Revision]        = None,
+        diff            : Option[Diff]            = None,
+        title           : Option[Atom.Title]      = None,
+        creators        : Seq[DublinCore.Creator] = Nil,
+        initial         : Option[Initial]         = None,
+        namespaces      : List[Namespace]         = Nil,
+        reverseExtras   : List[Extra]             = Nil,
+        extraAttributes : MetaData                = Null,
+        asLastParsed    : Option[Elem]            = None
       ) extends Element[Update]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
