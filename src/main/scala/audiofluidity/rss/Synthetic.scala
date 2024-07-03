@@ -1,5 +1,6 @@
 package audiofluidity.rss
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.xml.MetaData
 
@@ -8,6 +9,7 @@ object Synthetic:
   def forwardExtrasExceptElements( elements : Vector[Element[?]] )( reverseExtras : List[Element.Extra] ) : List[Element.Extra] =
     _forwardExtrasExceptElements( elements, Nil )( reverseExtras )
 
+  @tailrec
   private def _forwardExtrasExceptElements( elements : Vector[Element[?]], accum : List[Element.Extra] )( reverseExtras : List[Element.Extra] ) : List[Element.Extra] =
     reverseExtras match
       case Nil => accum
