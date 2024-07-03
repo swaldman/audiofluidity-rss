@@ -2,7 +2,7 @@ package audiofluidity.rss
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.xml.MetaData
+import scala.xml.{MetaData,Null}
 
 object Synthetic:
 
@@ -46,7 +46,7 @@ object Synthetic:
         used += itemLink
         val forwardExtras = forwardExtrasExceptElements(used.result)( synthetic.reverseExtras )
         val extraAttributs = synthetic.extraAttributes
-        ( warnings.result, Some( ItemUpdateFeed( typeElement, forwardExtras, extraAttributs, mbProvenance, itemLink ) ) )
+        ( warnings.result, Some( ItemUpdateFeed( itemLink, mbProvenance, forwardExtras, extraAttributs, typeElement ) ) )
 
   def fromUpdateAnnouncementSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) : ( Seq[String], Option[Synthetic] ) =
     val used = Vector.newBuilder[Element[?]]
@@ -58,7 +58,7 @@ object Synthetic:
           used += update
           val forwardExtras = forwardExtrasExceptElements(used.result)( synthetic.reverseExtras )
           val extraAttributs = synthetic.extraAttributes
-          ( warnings.result, Some( UpdateAnnouncement( typeElement, forwardExtras, extraAttributs, mbProvenance, update ) ) )
+          ( warnings.result, Some( UpdateAnnouncement( update, mbProvenance, forwardExtras, extraAttributs, typeElement ) ) )
 
   def fromUpdateCumulationSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) :( Seq[String], Option[Synthetic] ) =
     val used = Vector.newBuilder[Element[?]]
@@ -71,15 +71,39 @@ object Synthetic:
       used ++= updateHistories
       val forwardExtras = forwardExtrasExceptElements(used.result)( synthetic.reverseExtras )
       val extraAttributs = synthetic.extraAttributes
-      ( warnings.result, Some( UpdateCumulation( typeElement, forwardExtras, extraAttributs, mbProvenance, updateHistories ) ) )
+      ( warnings.result, Some( UpdateCumulation( updateHistories, mbProvenance, forwardExtras, extraAttributs, typeElement ) ) )
 
-  case class ItemUpdateFeed( `type` : Element.Iffy.Type, forwardExtras : List[Element.Extra], extraAttributes : MetaData, provenance : Option[Element.Iffy.Provenance], itemLink : Element.Atom.Link ) extends Synthetic.Derived:
+  object ItemUpdateFeed:
+    val DefaultTypeElement = Element.Iffy.Type(Element.Iffy.Synthetic.KnownType.ItemUpdateFeed.toString)
+  case class ItemUpdateFeed(
+    itemLink        : Element.Atom.Link,
+    provenance      : Option[Element.Iffy.Provenance] = None,
+    forwardExtras   : List[Element.Extra]             = Nil,
+    extraAttributes : MetaData                        = Null,
+    `type`          : Element.Iffy.Type               = ItemUpdateFeed.DefaultTypeElement
+  ) extends Synthetic.Derived:
     def knownNontypeElements : List[Element[?]] = provenance.toList ::: itemLink :: Nil
 
-  case class UpdateAnnouncement( `type` : Element.Iffy.Type, forwardExtras : List[Element.Extra], extraAttributes : MetaData, provenance : Option[Element.Iffy.Provenance], update : Element.Iffy.Update ) extends Synthetic.Derived:
+  object UpdateAnnouncement:
+    val DefaultTypeElement = Element.Iffy.Type(Element.Iffy.Synthetic.KnownType.UpdateAnnouncement.toString)
+  case class UpdateAnnouncement(
+    update          : Element.Iffy.Update,
+    provenance      : Option[Element.Iffy.Provenance] = None,
+    forwardExtras   : List[Element.Extra]             = Nil,
+    extraAttributes : MetaData                        = Null,
+    `type`          : Element.Iffy.Type               = UpdateAnnouncement.DefaultTypeElement
+  ) extends Synthetic.Derived:
     def knownNontypeElements : List[Element[?]] = provenance.toList ::: update :: Nil
 
-  case class UpdateCumulation( `type` : Element.Iffy.Type, forwardExtras : List[Element.Extra], extraAttributes : MetaData, provenance : Option[Element.Iffy.Provenance], updateHistories : Seq[Element.Iffy.UpdateHistory] ) extends Synthetic.Derived:
+  object UpdateCumulation:
+    val DefaultTypeElement = Element.Iffy.Type(Element.Iffy.Synthetic.KnownType.UpdateCumulation.toString)
+  case class UpdateCumulation(
+    updateHistories : Seq[Element.Iffy.UpdateHistory],
+    provenance      : Option[Element.Iffy.Provenance] = None,
+    forwardExtras   : List[Element.Extra]             = Nil,
+    extraAttributes : MetaData                        = Null,
+    `type`          : Element.Iffy.Type               = UpdateCumulation.DefaultTypeElement
+  ) extends Synthetic.Derived:
     def knownNontypeElements : List[Element[?]] = provenance.toList ::: updateHistories.toList
 
   trait Derived extends Synthetic:
