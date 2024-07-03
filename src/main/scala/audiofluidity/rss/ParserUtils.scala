@@ -88,7 +88,7 @@ trait ParserUtils:
                 val (ws, extra) = attemptFillInExtra( elem )
                 _reverseExtrasExcept( nonExtra, warnings++ws, extra::accum )( rest )
               case n =>
-                val excised = nonExtra.slice(0,n) ++ nonExtra.drop(n+1)
+                val excised = nonExtra.take(n) ++ nonExtra.drop(n+1)
                 _reverseExtrasExcept( excised, warnings, accum )( rest )
           case _ =>
             _reverseExtrasExcept( nonExtra, warnings, accum )( rest )
