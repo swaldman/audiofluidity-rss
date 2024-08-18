@@ -1,7 +1,7 @@
 package audiofluidity.rss
 
 import scala.annotation.tailrec
-import scala.collection.mutable
+import scala.collection.{immutable,mutable}
 import scala.xml.{MetaData,Null}
 
 object Synthetic:
@@ -97,6 +97,29 @@ object Synthetic:
 
   object UpdateCumulation:
     val DefaultTypeElement = Element.Iffy.Type(Element.Iffy.Synthetic.KnownType.UpdateCumulation.toString)
+    def cumulate( announcements : Seq[UpdateAnnouncement], provenance : Option[Element.Iffy.Provenance] = None ) : Either[CannotCumulateUpdates,UpdateCumulation] =
+      import Element.Iffy.{Initial,Uid,Update,UpdateHistory}
+      def triple( update : Element.Iffy.Update ) : Tuple3[String,Initial,Update] =
+        val initial = update.initial.getOrElse( throw new CannotCumulateUpdates("An update is missing its required initial element.") )
+        val uid = initial.guid.getOrElse( throw new CannotCumulateUpdates("An update's initial element is missing its required uid.") ).value
+        ( uid, initial, update )
+      given Ordering[Update] = Ordering.by( (update:Update) => (update.updated.zdt, update.toString) ).reverse
+      try
+        val ( initialsByUid, updatesByUid ) =
+          announcements.map(ua=>triple(ua.update)).foldLeft( Tuple2(Map.empty[String,Initial],Map.empty[String,immutable.SortedSet[Update]]) ): ( accum, next ) =>
+            val (ibu, ubu) = accum
+            val (uid, initial, update) = next
+            val lastUpdateSortedSet = ubu.get(uid).getOrElse(immutable.SortedSet.empty[Update])
+            (ibu.updated(uid, initial), ubu.updated(uid, (lastUpdateSortedSet + update)))
+        val updateHistories =
+          updatesByUid.map { case (uid, updatesSortedSet) =>
+            val updates = updatesSortedSet.toSeq
+            val initial = initialsByUid(uid) // should never fail, we got complete triples
+            UpdateHistory(updates,Some(initial))
+          }
+        Right(UpdateCumulation(updateHistories.toSeq,provenance))
+      catch
+        case ccu : CannotCumulateUpdates => Left(ccu)
   case class UpdateCumulation(
     updateHistories : Seq[Element.Iffy.UpdateHistory],
     provenance      : Option[Element.Iffy.Provenance] = None,
