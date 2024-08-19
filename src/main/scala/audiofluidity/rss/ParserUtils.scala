@@ -1,5 +1,7 @@
 package audiofluidity.rss
 
+import Element.Parser
+
 import audiofluidity.rss.util.defaultNamespaceUri
 
 import scala.annotation.tailrec

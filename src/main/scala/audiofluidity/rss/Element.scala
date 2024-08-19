@@ -977,6 +977,27 @@ object Element:
     type Kinds = Set[Kind] | Kinds.All.type
 
 
+    object Parser:
+      object Custom:
+        def silentFail[T <: Element[T]] : Custom[T] = (_, _) => ( Nil, None )
+        object Finder:
+          case class Mapping[T <: Element[T]]( key : Parser[T], value : Custom[T] )
+          def fromMappings( mappings : Seq[Mapping[?]] ) : Finder = new Finder:
+            private val map : Map[Any,Any] = Map.from[Any,Any]( mappings.map( m => (m.key,m.value) ) )
+            def find[T <: Element[T]]( eparser : Parser[T] ) : Option[Custom[T]] =
+              map.get(eparser).map( _.asInstanceOf[Custom[T]] )
+          val findNothing : Finder = new Finder:
+            def find[T <: Element[T]]( eparser : Parser[T] ) : Option[Custom[T]] = None
+        trait Finder:
+          def find[T <: Element[T]]( eparser : Parser[T] ) : Option[Custom[T]]
+      type Custom[T <: Element[T]] = (Elem, Parser.Config) => ( Seq[String], Option[(Elem,T)] )
+      object Config:
+        given Config = Config( Custom.Finder.findNothing, Custom.Finder.findNothing, Kinds.None )
+      case class Config (
+        preempts     : Custom.Finder,
+        fallbacks    : Custom.Finder,
+        retainParsed : Element.Kinds
+      )
     trait Parser[T <: Element[T]]( val namespace : Option[Namespace], val label : String ) extends ParserUtils:
       def _fromChecked( elem : Elem )(using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,T)] )
 
