@@ -36,7 +36,7 @@ object Synthetic:
               case Element.Iffy.Synthetic.KnownType.UpdateCumulation => fromUpdateCumulationSynthetic( warnings )( typeElem, synthetic )
           case None => ( Seq("Missing type."), None )
 
-  def fromItemUpdateFeedSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) : ( Seq[String], Option[Synthetic] ) =
+  private def fromItemUpdateFeedSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) : ( Seq[String], Option[Synthetic] ) =
     val used     = Vector.newBuilder[Element[?]]
     val mbProvenance = synthetic.extraElements.collect{ case p : Element.Iffy.Provenance => p }.headOption
     synthetic.extraElements.collect{ case l : Element.Atom.Link => l }.headOption match
@@ -48,7 +48,7 @@ object Synthetic:
         val extraAttributs = synthetic.extraAttributes
         ( warnings.result, Some( ItemUpdateFeed( itemLink, mbProvenance, forwardExtras, extraAttributs, typeElement ) ) )
 
-  def fromUpdateAnnouncementSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) : ( Seq[String], Option[Synthetic] ) =
+  private def fromUpdateAnnouncementSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) : ( Seq[String], Option[Synthetic] ) =
     val used = Vector.newBuilder[Element[?]]
     val mbProvenance = synthetic.extraElements.collect{ case p : Element.Iffy.Provenance => p }.headOption
     synthetic.extraElements.collect{ case u : Element.Iffy.Update => u }.headOption match
@@ -60,7 +60,7 @@ object Synthetic:
           val extraAttributs = synthetic.extraAttributes
           ( warnings.result, Some( UpdateAnnouncement( update, mbProvenance, forwardExtras, extraAttributs, typeElement ) ) )
 
-  def fromUpdateCumulationSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) :( Seq[String], Option[Synthetic] ) =
+  private def fromUpdateCumulationSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) :( Seq[String], Option[Synthetic] ) =
     val used = Vector.newBuilder[Element[?]]
     val mbProvenance = synthetic.extraElements.collect{ case p : Element.Iffy.Provenance => p }.headOption
     val updateHistories = synthetic.extraElements.collect{ case uh : Element.Iffy.UpdateHistory => uh }
@@ -97,6 +97,19 @@ object Synthetic:
 
   object UpdateCumulation:
     val DefaultTypeElement = Element.Iffy.Type(Element.Iffy.Synthetic.KnownType.UpdateCumulation.toString)
+    def computeProvenance( destinationFeedUrl : String, sourceFeedUrl : String, updateAnnouncements : Seq[UpdateAnnouncement] ) : Option[Element.Iffy.Provenance] =
+      val sourceLink = Element.Atom.Link(href = sourceFeedUrl, rel = Some(Element.Atom.LinkRelation.via) )
+      val simpleSourceProvenance = Element.Iffy.Provenance(Seq(sourceLink))
+      def isSimpleSourceLink( item : Element.Atom.Link | Element.Iffy.Provenance ) : Boolean =
+        def sameEnoughLink( link : Element.Atom.Link ) : Boolean = link.href == sourceLink.href && link.rel == sourceLink.rel
+        item match
+          case link : Element.Atom.Link             => sameEnoughLink(link)
+          case provenance : Element.Iffy.Provenance => isSimpleSourceLink(provenance)
+      val rawAnnouncementProvenances = updateAnnouncements.map( _.provenance ).flatten
+      ( destinationFeedUrl == sourceFeedUrl, rawAnnouncementProvenances.isEmpty ) match
+        case ( true, true )  => None
+        case ( false, true ) => Some(simpleSourceProvenance)
+        case ( _, false )    => Some(Element.Iffy.Provenance(simpleSourceProvenance +: rawAnnouncementProvenances.filterNot( isSimpleSourceLink ), shape = Some(Element.Iffy.Provenance.Shape.merge)))
     def cumulate( announcements : Seq[UpdateAnnouncement], provenance : Option[Element.Iffy.Provenance] = None ) : Either[CannotCumulateUpdates,UpdateCumulation] =
       import Element.Iffy.{Initial,Uid,Update,UpdateHistory}
       def triple( update : Element.Iffy.Update ) : Tuple3[String,Initial,Update] =
