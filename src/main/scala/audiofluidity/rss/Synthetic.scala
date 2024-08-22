@@ -97,7 +97,7 @@ object Synthetic:
 
   object UpdateCumulation:
     val DefaultTypeElement = Element.Iffy.Type(Element.Iffy.Synthetic.KnownType.UpdateCumulation.toString)
-    def computeProvenance( destinationFeedUrl : String, sourceFeedUrl : String, updateAnnouncements : Seq[UpdateAnnouncement] ) : Option[Element.Iffy.Provenance] =
+    def computeProvenance( sourceFeedUrl : String, mbDestinationFeedUrl : Option[String], updateAnnouncements : Seq[UpdateAnnouncement] ) : Option[Element.Iffy.Provenance] =
       val sourceLink = Element.Atom.Link(href = sourceFeedUrl, rel = Some(Element.Atom.LinkRelation.via) )
       val simpleSourceProvenance = Element.Iffy.Provenance(Seq(sourceLink))
       def isSimpleSourceLink( item : Element.Atom.Link | Element.Iffy.Provenance ) : Boolean =
@@ -106,7 +106,7 @@ object Synthetic:
           case link : Element.Atom.Link             => sameEnoughLink(link)
           case provenance : Element.Iffy.Provenance => isSimpleSourceLink(provenance)
       val rawAnnouncementProvenances = updateAnnouncements.map( _.provenance ).flatten
-      ( destinationFeedUrl == sourceFeedUrl, rawAnnouncementProvenances.isEmpty ) match
+      ( mbDestinationFeedUrl.fold(false)(dfu => dfu == sourceFeedUrl), rawAnnouncementProvenances.isEmpty ) match
         case ( true, true )  => None
         case ( false, true ) => Some(simpleSourceProvenance)
         case ( _, false )    => Some(Element.Iffy.Provenance(simpleSourceProvenance +: rawAnnouncementProvenances.filterNot( isSimpleSourceLink ), shape = Some(Element.Iffy.Provenance.Shape.merge)))
