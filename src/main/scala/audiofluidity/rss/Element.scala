@@ -713,13 +713,31 @@ object Element:
           val reverseExtras = childElemsAsReverseExtrasExcept(warnings)( used.result )(elem)
           val asLastParsed = if in(pconfig.retainParsed) then Some(elem) else None
           ( warnings.result, Some( ( elem, Provenance( linksAndProvenances, reverseExtras = reverseExtras, extraAttributes = extraAttributes, asLastParsed = asLastParsed) ) ) )
-      case class Provenance(
+        def apply(
+          linksAndProvenances : Seq[Atom.Link|Iffy.Provenance],
+          shape : Option[Provenance.Shape] = None,
+          namespaces : List[Namespace]     = Nil,
+          reverseExtras : List[Extra]      = Nil,
+          extraAttributes : MetaData       = Null,
+          asLastParsed : Option[Elem]      = None
+        ) : Provenance =
+          // collapse directly nested merges into top-level element. See https://tech.interfluidity.com/xml/iffy/index.html#iffy-provenance
+          val lap = 
+            if shape == Some(Shape.merge) then
+              linksAndProvenances.flatMap: lop =>
+                lop match
+                  case Provenance( lap, Some(Shape.merge), _, _, _, _ ) => lap
+                  case _ => Seq(lop)
+            else
+              linksAndProvenances
+          new Provenance( lap, shape, namespaces, reverseExtras, extraAttributes, asLastParsed )
+      case class Provenance (
         linksAndProvenances : Seq[Atom.Link|Iffy.Provenance],
-        shape : Option[Provenance.Shape] = None,
-        namespaces : List[Namespace] = Nil,
-        reverseExtras : List[Extra] = Nil,
-        extraAttributes : MetaData = Null,
-        asLastParsed : Option[Elem] = None
+        shape : Option[Provenance.Shape],
+        namespaces : List[Namespace],
+        reverseExtras : List[Extra],
+        extraAttributes : MetaData,
+        asLastParsed : Option[Elem],
       ) extends Element[Provenance]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
