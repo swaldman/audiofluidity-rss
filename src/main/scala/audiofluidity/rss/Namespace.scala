@@ -23,6 +23,7 @@ object Namespace:
   val Source          = Namespace("source",  "http://source.scripting.com/") // see http://source.scripting.com/
   val WellFormedWeb   = Namespace("wfw",     "http://wellformedweb.org/CommentAPI/") // see https://www.rssboard.org/comment-api
   val Iffy            = Namespace("iffy",    "http://tech.interfluidity.com/xml/iffy/")
+  val RawVoice        = Namespace("rawvoice","http://www.rawvoice.com/rawvoiceRssModule/") 
 
   // CreativeCommons namespace declaration variations
   //   http://blogs.law.harvard.edu/tech/creativeCommonsRssModule
@@ -41,6 +42,8 @@ object Namespace:
   // Source namespace declaration variations
   //   http://source.smallpict.com/2014/07/12/theSourceNamespace.html
   //     (in the wild, an early version)
+  //
+  // See also https://podnews.net/article/additional-rss-namespaces-podcasting
 
   def attemptCanonicalizeUri( uri : String ) : String =
     val normalizedUri =
@@ -50,23 +53,25 @@ object Namespace:
         .reverse
 
     normalizedUri match
-      case "://www.w3.org/2005/Atom" => "http://www.w3.org/2005/Atom"
+      case "://www.w3.org/2005/Atom"                                                => "http://www.w3.org/2005/Atom"
       case "://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md" => "https://podcastindex.org/namespace/1.0"
-      case "://podcastindex.org/namespace/1.0" => "https://podcastindex.org/namespace/1.0"
-      case "://podlove.org/simple-chapters" => "http://podlove.org/simple-chapters"
-      case "://www.google.com/schemas/play-podcasts/1.0" => "http://www.google.com/schemas/play-podcasts/1.0"
-      case "://blogs.law.harvard.edu/tech/creativeCommonsRssModule" => "http://web.resource.org/cc/"
-      case "://backend.userland.com/creativeCommonsRssModule" => "http://web.resource.org/cc/"
-      case "://cyber.law.harvard.edu/rss/creativeCommonsRssModule.html" => "http://web.resource.org/cc/"
-      case "://www.rssboard.org/media-rss" => "http://search.yahoo.com/mrss/"
-      case "://search.yahoo.com/rss" => "http://search.yahoo.com/mrss/"
-      case "://source.smallpict.com/2014/07/12/theSourceNamespace.html" => "http://source.scripting.com/"
-      case "://source.scripting.com" => "http://source.scripting.com/"
-      case "://wellformedweb.org/CommentAPI" => "http://wellformedweb.org/CommentAPI/"
-      case "://tech.interfluidity.com/xml/iffy" => "http://tech.interfluidity.com/xml/iffy/"
+      case "://podcastindex.org/namespace/1.0"                                      => "https://podcastindex.org/namespace/1.0"
+      case "://podlove.org/simple-chapters"                                         => "http://podlove.org/simple-chapters"
+      case "://www.google.com/schemas/play-podcasts/1.0"                            => "http://www.google.com/schemas/play-podcasts/1.0"
+      case "://blogs.law.harvard.edu/tech/creativeCommonsRssModule"                 => "http://web.resource.org/cc/"
+      case "://backend.userland.com/creativeCommonsRssModule"                       => "http://web.resource.org/cc/"
+      case "://cyber.law.harvard.edu/rss/creativeCommonsRssModule.html"             => "http://web.resource.org/cc/"
+      case "://www.rssboard.org/media-rss"                                          => "http://search.yahoo.com/mrss/"
+      case "://search.yahoo.com/rss"                                                => "http://search.yahoo.com/mrss/"
+      case "://source.smallpict.com/2014/07/12/theSourceNamespace.html"             => "http://source.scripting.com/"
+      case "://source.scripting.com"                                                => "http://source.scripting.com/"
+      case "://wellformedweb.org/CommentAPI"                                        => "http://wellformedweb.org/CommentAPI/"
+      case "://tech.interfluidity.com/xml/iffy"                                     => "http://tech.interfluidity.com/xml/iffy/"
+      case "://www.rawvoice.com/rawvoiceRssModule"                                  => "http://www.rawvoice.com/rawvoiceRssModule/"
+      case "://blubrry.com/developer/rawvoice-rss"                                  => "http://www.rawvoice.com/rawvoiceRssModule/"
       case _ => uri
 
-  private val Common = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: WellFormedWeb :: Iffy :: Nil
+  private val Common = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: WellFormedWeb :: Iffy :: RawVoice :: Nil
 
   private val ByPrefix = Common.map( ns => (ns.prefix, ns)).toMap
 
