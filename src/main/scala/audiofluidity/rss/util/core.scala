@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters._
 import java.time.temporal.TemporalAccessor
 
 import scala.xml.*
-import audiofluidity.rss.{Element,Namespace}
+import audiofluidity.rss.{atom,Element,Namespace}
 
 private val RssDateTimeFormatter = DateTimeFormatter.RFC_1123_DATE_TIME
 
@@ -58,6 +58,9 @@ def attemptLenientParsePubDateToInstant( str : String ) : Try[Instant] =
 
 def attemptLenientParsePubDate( str : String ) : Try[ZonedDateTime] =
   _attemptLenientParsePubDate( str ).map( ZonedDateTime.from )
+
+def parseRssOrAtomDate( str : String ) : Try[ZonedDateTime] =
+  attemptLenientParsePubDate(str).orElse(Try(atom.parseDateConstruct(str)))
 
 def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
 

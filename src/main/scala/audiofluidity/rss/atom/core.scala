@@ -1,7 +1,7 @@
 package audiofluidity.rss.atom
 
 import java.time.{ZonedDateTime,ZoneId}
-import java.time.format.DateTimeFormatter
+import java.time.format.{DateTimeFormatter,DateTimeParseException}
 import scala.xml.*
 import audiofluidity.rss.{BadAtomXml,ConflictingNamespaces,Element,Namespace}
 import audiofluidity.rss.util.stripPrefixedNamespaces
@@ -18,10 +18,16 @@ private def uniqueText(parent : Elem, label : String) : String =
     throw new BadAtomXml(s"Expected, did not find, a unique '${label}' in '${parent.label}'.")
 
 private def findPubDate(entryElem : Elem) : ZonedDateTime =
-  val isoInstant =
+  val isoOffsetOrInstant =
     (mbUniqueText( entryElem, "published" ) orElse mbUniqueText( entryElem, "updates")).getOrElse:
       throw new BadAtomXml(s"Found neither a 'published' nor 'updated' element in entry.")
-  ZonedDateTime.from( DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.systemDefault()).parse(isoInstant) )
+  parseDateConstruct(isoOffsetOrInstant)    
+
+def parseDateConstruct( isoOffsetOrInstant : String ) : ZonedDateTime =
+  try
+    ZonedDateTime.parse( isoOffsetOrInstant, DateTimeFormatter.ISO_OFFSET_DATE_TIME )
+  catch  
+    case dtpe : DateTimeParseException => ZonedDateTime.from( DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.systemDefault()).parse(isoOffsetOrInstant) )
 
 private val DefaultAuthorEmail = "nospam@dev.null"
 

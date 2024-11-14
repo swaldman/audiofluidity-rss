@@ -594,6 +594,11 @@ object Element:
                 Elem(prefix = "wfw", label = "commentRss", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(rssUrl))
 
     object Iffy:
+      case class All( namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[All], Curation.Type:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+          Elem(prefix = "iffy", label = "all", attributes = Null, scope = TopScope, minimizeEmpty = true )
       object Completeness:
         object Value:
           def lenientParse( string : String ) : Option[Value] = Value.values.find( _.toString.equalsIgnoreCase( string.trim ) )
@@ -604,6 +609,13 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "completeness", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(value.toString))
+      object Curation:
+        sealed trait Type
+      case class Curation( curationType : (Element[?] & Curation.Type), namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Curation]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+          Elem(prefix = "iffy", label = "curation", attributes = Null, scope = TopScope, minimizeEmpty = true, child = curationType.toElem)
       object Diff extends Parser[Diff](Some(Namespace.Iffy),"diff"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Diff)] ) =
           val warnings = Vector.newBuilder[String]
@@ -744,6 +756,20 @@ object Element:
         override def toUndecoratedElem: Elem =
             val attributes = shape.fold(Null)( shape => new UnprefixedAttribute("shape", shape.toString, Null) )
             Elem(prefix = "iffy", label = "provenance", attributes = attributes, scope = TopScope, minimizeEmpty = true, child = linksAndProvenances.map(_.toElem)*)
+      object Recent:
+        object Operator:
+          def lenientParse( string : String ) : Option[Operator] = Operator.values.find( _.toString.equalsIgnoreCase( string.trim ) )
+        enum Operator:
+          case and, or
+      case class Recent( since : Option[ZonedDateTime], last : Option[Int], operator : Option[Recent.Operator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Recent], Curation.Type:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+          val attributes =
+            val maybeWithOperator = operator.fold(Null)( o => new UnprefixedAttribute( "operator", o.toString, Null ) )
+            val maybeWithLast = last.fold(maybeWithOperator)( l => new UnprefixedAttribute( "last", l.toString, maybeWithOperator ) )
+            since.fold(maybeWithLast)( s => new UnprefixedAttribute( "since", java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(s), maybeWithLast ) )
+          Elem(prefix = "iffy", label = "recent", attributes = attributes, scope = TopScope, minimizeEmpty = true )
       object Restriction extends Parser[Restriction](Some(Namespace.Iffy),"restriction"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Restriction)] ) =
           val warnings = Vector.newBuilder[String]
@@ -768,6 +794,16 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
           Elem(prefix = "iffy", label = "revision", attributes = Null, scope = TopScope, minimizeEmpty = true, child = new Text(url))
+      case class Selection( namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Selection], Curation.Type:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+          Elem(prefix = "iffy", label = "selection", attributes = Null, scope = TopScope, minimizeEmpty = true )
+      case class Single( namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Single], Curation.Type:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+          Elem(prefix = "iffy", label = "single", attributes = Null, scope = TopScope, minimizeEmpty = true )
       object Synthetic extends Parser[Synthetic](Some(Namespace.Iffy),"synthetic"):
         object KnownType:
           def lenientParse( string : String ) : Option[KnownType] = KnownType.values.find( _.toString.equalsIgnoreCase( string.trim ) )
