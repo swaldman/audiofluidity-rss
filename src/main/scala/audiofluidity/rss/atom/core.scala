@@ -19,7 +19,7 @@ private def uniqueText(parent : Elem, label : String) : String =
 
 private def findPubDate(entryElem : Elem) : ZonedDateTime =
   val isoOffsetOrInstant =
-    (mbUniqueText( entryElem, "published" ) orElse mbUniqueText( entryElem, "updates")).getOrElse:
+    (mbUniqueText( entryElem, "published" ) orElse mbUniqueText( entryElem, "updated")).getOrElse:
       throw new BadAtomXml(s"Found neither a 'published' nor 'updated' element in entry.")
   parseDateConstruct(isoOffsetOrInstant)    
 
