@@ -661,6 +661,16 @@ object Element:
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
             Elem(prefix = "iffy", label = "hint-announce", attributes = Null, scope = TopScope, minimizeEmpty = true, child = (Seq(policy.toElem) ++ restriction.map(_.toElem))*)
+      case class ItemRef( href : String, `type` : Option[String], guid : Option[String], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[ItemRef]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem: Elem =
+            val attrs =
+              val optionals =
+                val _guid = guid.fold(Null)( g => new UnprefixedAttribute("guid", g, Null) )
+                `type`.fold(_guid)( t => new UnprefixedAttribute("type", t, _guid) )
+              new UnprefixedAttribute("href", href, optionals)
+            Elem(prefix = "iffy", label = "item-ref", attributes = Null, scope = TopScope, minimizeEmpty = true)
       object Initial extends Parser[Initial](Some(Namespace.Iffy),"initial"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Initial)] ) =
           val warnings = Vector.newBuilder[String]
@@ -688,6 +698,10 @@ object Element:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="initial", (title++link++guid++published++creators).toSeq.map(_.toElem)*)
+      case class InReplyTo( itemRef : ItemRef, namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[InReplyTo]:
+        override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
+        override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
+        override def toUndecoratedElem : Elem = elem(prefix="iffy")(label="in-reply-to", itemRef.toElem)
       object Policy extends Parser[Policy](Some(Namespace.Iffy),"policy"):
         override def _fromChecked( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], Option[(Elem,Policy)] ) =
           val warnings = Vector.newBuilder[String]
