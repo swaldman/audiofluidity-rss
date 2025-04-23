@@ -10,20 +10,22 @@ object Namespace:
     lazy val excludedNamespaces = excluded.foldLeft( Set.empty[Namespace] )( (accum, nextTup) => accum ++ nextTup(1) )
 
   // when adding new well-known namespaces,
-  // don't forget also to add to attemptCanonicalizeUri(...) and Common!
+  // don't forget also to add to Common!
 
-  val RdfContent      = Namespace("content", "http://purl.org/rss/1.0/modules/content/")
-  val ApplePodcast    = Namespace("itunes",  "http://www.itunes.com/dtds/podcast-1.0.dtd")
-  val DublinCore      = Namespace("dc",      "http://purl.org/dc/elements/1.1/")
-  val Atom            = Namespace("atom",    "http://www.w3.org/2005/Atom")
-  val Podcast         = Namespace("podcast", "https://podcastindex.org/namespace/1.0")
-  val Spotify         = Namespace("spotify", "http://www.spotify.com/ns/rss")
-  val Media           = Namespace("media",   "http://search.yahoo.com/mrss/") // see https://www.rssboard.org/media-rss
-  val CreativeCommons = Namespace("cc",      "http://web.resource.org/cc/")
-  val Source          = Namespace("source",  "http://source.scripting.com/") // see http://source.scripting.com/
-  val WellFormedWeb   = Namespace("wfw",     "http://wellformedweb.org/CommentAPI/") // see https://www.rssboard.org/comment-api
-  val Iffy            = Namespace("iffy",    "http://tech.interfluidity.com/xml/iffy/")
-  val RawVoice        = Namespace("rawvoice","http://www.rawvoice.com/rawvoiceRssModule/") 
+  val RdfContent      = Namespace("content",    "http://purl.org/rss/1.0/modules/content/")
+  val ApplePodcast    = Namespace("itunes",     "http://www.itunes.com/dtds/podcast-1.0.dtd")
+  val DublinCore      = Namespace("dc",         "http://purl.org/dc/elements/1.1/")
+  val Atom            = Namespace("atom",       "http://www.w3.org/2005/Atom")
+  val Podcast         = Namespace("podcast",    "https://podcastindex.org/namespace/1.0")
+  val Spotify         = Namespace("spotify",    "http://www.spotify.com/ns/rss")
+  val Media           = Namespace("media",      "http://search.yahoo.com/mrss/") // see https://www.rssboard.org/media-rss
+  val CreativeCommons = Namespace("cc",         "http://web.resource.org/cc/")
+  val Source          = Namespace("source",     "http://source.scripting.com/") // see http://source.scripting.com/
+  val WellFormedWeb   = Namespace("wfw",        "http://wellformedweb.org/CommentAPI/") // see https://www.rssboard.org/comment-api
+  val Iffy            = Namespace("iffy",       "http://tech.interfluidity.com/xml/iffy/")
+  val RawVoice        = Namespace("rawvoice",   "http://www.rawvoice.com/rawvoiceRssModule/")
+  val SimpleChapters  = Namespace("psc",        "http://podlove.org/simple-chapters")
+  val GooglePlay      = Namespace("googleplay", "http://www.google.com/schemas/play-podcasts/1.0")
 
   // CreativeCommons namespace declaration variations
   //   http://blogs.law.harvard.edu/tech/creativeCommonsRssModule
@@ -45,40 +47,58 @@ object Namespace:
   //
   // See also https://podnews.net/article/additional-rss-namespaces-podcasting
 
-  def attemptCanonicalizeUri( uri : String ) : String =
-    ByUriLowerCase.get(uri.toLowerCase) match
-      case Some( ns ) => ns.uri
-      case None =>
-        val normalizedUri =
-          uri.dropWhile( _ != ':' ) // ignore http / https variation
-            .reverse
-            .dropWhile( _ == '/' ) // ignore trailing slashes
-            .reverse
+  private def coreUri( uri : String ) =
+    uri.dropWhile( _ != ':' ) // ignore http / https variation
+      .reverse
+      .dropWhile( _ == '/' ) // ignore trailing slashes
+      .reverse
 
-        normalizedUri match
-          case "://www.w3.org/2005/Atom"                                                => Atom.uri
+  /**
+    * Converts common variations on namespace URIs to canonincal versions,
+    * including looking through variations in protocol (e.g. http vs https)
+    * and trailing slashes, but also commonly encountered alternative or mis-written
+    * URIs
+    *
+    * @param uri the URI to canonicalize
+    * @return the canonincalized URI (usually the input URI, but sometimes not!)
+    */
+  def attemptCanonicalizeUri( uri : String ) : String =
+    val uriCore = coreUri(uri)
+    val uriCoreLowerCase = uriCore.toLowerCase
+    ByUriCoreLowerCase.get(uriCoreLowerCase) match
+      case Some( ns ) => ns.uri // just a variation of protocol and/or case
+      case None =>              // an idiosyncratic variation
+        uriCore match // we're sticking with a case-sensitive match here. should we?
           case "://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md" => Podcast.uri
-          case "://podcastindex.org/namespace/1.0"                                      => Podcast.uri
-          case "://podlove.org/simple-chapters"                                         => "http://podlove.org/simple-chapters"
-          case "://www.google.com/schemas/play-podcasts/1.0"                            => "http://www.google.com/schemas/play-podcasts/1.0"
           case "://blogs.law.harvard.edu/tech/creativeCommonsRssModule"                 => CreativeCommons.uri
           case "://backend.userland.com/creativeCommonsRssModule"                       => CreativeCommons.uri
           case "://cyber.law.harvard.edu/rss/creativeCommonsRssModule.html"             => CreativeCommons.uri
           case "://www.rssboard.org/media-rss"                                          => Media.uri
           case "://search.yahoo.com/rss"                                                => Media.uri
           case "://source.smallpict.com/2014/07/12/theSourceNamespace.html"             => Source.uri
-          case "://source.scripting.com"                                                => Source.uri
-          case "://wellformedweb.org/CommentAPI"                                        => WellFormedWeb.uri
-          case "://tech.interfluidity.com/xml/iffy"                                     => Iffy.uri
-          case "://www.rawvoice.com/rawvoiceRssModule"                                  => RawVoice.uri
           case "://blubrry.com/developer/rawvoice-rss"                                  => RawVoice.uri
           case _ => uri
 
-  private val Common = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: WellFormedWeb :: Iffy :: RawVoice :: Nil
+  private val Common =
+    ApplePodcast ::
+    Atom ::
+    CreativeCommons ::
+    DublinCore ::
+    GooglePlay ::
+    Iffy ::
+    Media ::
+    Podcast ::
+    RawVoice ::
+    RdfContent ::
+    SimpleChapters ::
+    Source ::
+    Spotify ::
+    WellFormedWeb ::
+    Nil
 
   private val ByPrefix = Common.map( ns => (ns.prefix, ns) ).toMap
 
-  private val ByUriLowerCase = Common.map( ns => ( ns.uri, ns) ).toMap
+  private val ByUriCoreLowerCase = Common.map( ns => ( coreUri(ns.uri).toLowerCase, ns) ).toMap
 
   def byPrefix( pfx : Option[String] ) : Option[Namespace] = ByPrefix.get( pfx )
   def byPrefix( pfx : String )         : Option[Namespace] = byPrefix( Some(pfx) )
