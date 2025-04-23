@@ -51,7 +51,8 @@ private val LenientRssDateTimeFormatter =
     .toFormatter().withResolverStyle(ResolverStyle.SMART).withChronology(IsoChronology.INSTANCE)
 
 private def _attemptLenientParsePubDate( str : String ) : Try[TemporalAccessor] =
-  (Try(RssDateTimeFormatter.parse(str)) orElse Try(LenientRssDateTimeFormatter.parse(str)))
+  val trimmed = str.trim
+  (Try(RssDateTimeFormatter.parse(trimmed)) orElse Try(LenientRssDateTimeFormatter.parse(trimmed)))
 
 def attemptLenientParsePubDateToInstant( str : String ) : Try[Instant] =
   _attemptLenientParsePubDate( str ).map( Instant.from )
