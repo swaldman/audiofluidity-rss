@@ -46,34 +46,39 @@ object Namespace:
   // See also https://podnews.net/article/additional-rss-namespaces-podcasting
 
   def attemptCanonicalizeUri( uri : String ) : String =
-    val normalizedUri =
-      uri.dropWhile( _ != ':' ) // ignore http / https variation
-        .reverse
-        .dropWhile( _ == '/' ) // ignore trailing slashes
-        .reverse
+    ByUriLowerCase.get(uri.toLowerCase) match
+      case Some( ns ) => ns.uri
+      case None =>
+        val normalizedUri =
+          uri.dropWhile( _ != ':' ) // ignore http / https variation
+            .reverse
+            .dropWhile( _ == '/' ) // ignore trailing slashes
+            .reverse
 
-    normalizedUri match
-      case "://www.w3.org/2005/Atom"                                                => "http://www.w3.org/2005/Atom"
-      case "://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md" => "https://podcastindex.org/namespace/1.0"
-      case "://podcastindex.org/namespace/1.0"                                      => "https://podcastindex.org/namespace/1.0"
-      case "://podlove.org/simple-chapters"                                         => "http://podlove.org/simple-chapters"
-      case "://www.google.com/schemas/play-podcasts/1.0"                            => "http://www.google.com/schemas/play-podcasts/1.0"
-      case "://blogs.law.harvard.edu/tech/creativeCommonsRssModule"                 => "http://web.resource.org/cc/"
-      case "://backend.userland.com/creativeCommonsRssModule"                       => "http://web.resource.org/cc/"
-      case "://cyber.law.harvard.edu/rss/creativeCommonsRssModule.html"             => "http://web.resource.org/cc/"
-      case "://www.rssboard.org/media-rss"                                          => "http://search.yahoo.com/mrss/"
-      case "://search.yahoo.com/rss"                                                => "http://search.yahoo.com/mrss/"
-      case "://source.smallpict.com/2014/07/12/theSourceNamespace.html"             => "http://source.scripting.com/"
-      case "://source.scripting.com"                                                => "http://source.scripting.com/"
-      case "://wellformedweb.org/CommentAPI"                                        => "http://wellformedweb.org/CommentAPI/"
-      case "://tech.interfluidity.com/xml/iffy"                                     => "http://tech.interfluidity.com/xml/iffy/"
-      case "://www.rawvoice.com/rawvoiceRssModule"                                  => "http://www.rawvoice.com/rawvoiceRssModule/"
-      case "://blubrry.com/developer/rawvoice-rss"                                  => "http://www.rawvoice.com/rawvoiceRssModule/"
-      case _ => uri
+        normalizedUri match
+          case "://www.w3.org/2005/Atom"                                                => Atom.uri
+          case "://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md" => Podcast.uri
+          case "://podcastindex.org/namespace/1.0"                                      => Podcast.uri
+          case "://podlove.org/simple-chapters"                                         => "http://podlove.org/simple-chapters"
+          case "://www.google.com/schemas/play-podcasts/1.0"                            => "http://www.google.com/schemas/play-podcasts/1.0"
+          case "://blogs.law.harvard.edu/tech/creativeCommonsRssModule"                 => CreativeCommons.uri
+          case "://backend.userland.com/creativeCommonsRssModule"                       => CreativeCommons.uri
+          case "://cyber.law.harvard.edu/rss/creativeCommonsRssModule.html"             => CreativeCommons.uri
+          case "://www.rssboard.org/media-rss"                                          => Media.uri
+          case "://search.yahoo.com/rss"                                                => Media.uri
+          case "://source.smallpict.com/2014/07/12/theSourceNamespace.html"             => Source.uri
+          case "://source.scripting.com"                                                => Source.uri
+          case "://wellformedweb.org/CommentAPI"                                        => WellFormedWeb.uri
+          case "://tech.interfluidity.com/xml/iffy"                                     => Iffy.uri
+          case "://www.rawvoice.com/rawvoiceRssModule"                                  => RawVoice.uri
+          case "://blubrry.com/developer/rawvoice-rss"                                  => RawVoice.uri
+          case _ => uri
 
   private val Common = RdfContent :: ApplePodcast :: DublinCore :: Atom :: Podcast :: Spotify :: Media :: CreativeCommons :: Source :: WellFormedWeb :: Iffy :: RawVoice :: Nil
 
-  private val ByPrefix = Common.map( ns => (ns.prefix, ns)).toMap
+  private val ByPrefix = Common.map( ns => (ns.prefix, ns) ).toMap
+
+  private val ByUriLowerCase = Common.map( ns => ( ns.uri, ns) ).toMap
 
   def byPrefix( pfx : Option[String] ) : Option[Namespace] = ByPrefix.get( pfx )
   def byPrefix( pfx : String )         : Option[Namespace] = byPrefix( Some(pfx) )
