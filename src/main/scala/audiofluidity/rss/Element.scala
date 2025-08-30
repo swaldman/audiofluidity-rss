@@ -777,7 +777,7 @@ object Element:
           def lenientParse( string : String ) : Option[Operator] = Operator.values.find( _.toString.equalsIgnoreCase( string.trim ) )
         enum Operator:
           case and, or
-      case class Recent( since : Option[ZonedDateTime], last : Option[Int], operator : Option[Recent.Operator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Recent], Curation.Type:
+      case class Recent( since : Option[ZonedDateTime], last : Option[Int], operator : Option[Recent.Operator], namespaces : List[Namespace] = Nil, reverseExtras : List[Extra] = Nil, extraAttributes : MetaData = Null, asLastParsed : Option[Elem] = None) extends Element[Recent]:
         override def overNamespaces(namespaces : List[Namespace]) = this.copy(namespaces = namespaces)
         override def reverseExtras( newReverseExtras : List[Extra] ) = this.copy( reverseExtras = newReverseExtras )
         override def toUndecoratedElem: Elem =
