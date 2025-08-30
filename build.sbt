@@ -4,8 +4,8 @@ ThisBuild / publishTo := {
 }
 
 ThisBuild / organization := "com.mchange"
-ThisBuild / version      := "0.1.1"
-ThisBuild / scalaVersion := "3.3.5"
+ThisBuild / version      := "0.1.2-SNAPSHOT"
+ThisBuild / scalaVersion := "3.3.6"
 
 lazy val root = project
   .in(file("."))
@@ -14,7 +14,7 @@ lazy val root = project
     resolvers           += Resolver.mavenLocal,
     scalacOptions ++= Seq("-deprecation"),
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "2.3.0",
-    libraryDependencies += "com.mchange" %% "conveniences" % "0.0.5",
+    libraryDependencies += "com.mchange" %% "conveniences" % "0.0.6-SNAPSHOT",
     libraryDependencies += "com.lihaoyi" %% "utest" % "0.8.2" % "test",
     testFrameworks += new TestFramework("utest.runner.Framework"),
     pomExtra := pomExtraForProjectName_Apache2( name.value )
