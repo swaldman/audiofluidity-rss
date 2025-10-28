@@ -1,10 +1,12 @@
+// new setting for the Central Portal
 ThisBuild / publishTo := {
-  if (isSnapshot.value) Some(Resolver.url("sonatype-snapshots", url("https://oss.sonatype.org/content/repositories/snapshots")))
-  else Some(Resolver.url("sonatype-staging", url("https://oss.sonatype.org/service/local/staging/deploy/maven2")))
+  val centralSnapshots = "https://central.sonatype.com/repository/maven-snapshots/"
+  if (isSnapshot.value) Some("central-snapshots" at centralSnapshots)
+  else localStaging.value
 }
 
 ThisBuild / organization := "com.mchange"
-ThisBuild / version      := "0.1.2-SNAPSHOT"
+ThisBuild / version      := "0.1.2"
 ThisBuild / scalaVersion := "3.3.6"
 
 lazy val root = project
