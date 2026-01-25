@@ -205,13 +205,6 @@ version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://pur
 </rss>
 ```
 
-## Limitations
-
-Although this library defines an informal AST for RSS, for now it only
-generates XML, it does not consume and parse it back. 
-
-Maybe someday if there's interest.
-
 ## License
 
 _audiofluidity-rss_ was revised from a library internal to [_audiofluidity_](https://github.com/swaldman/audiofluidity),
