@@ -6,7 +6,7 @@ ThisBuild / publishTo := {
 }
 
 ThisBuild / organization := "com.mchange"
-ThisBuild / version      := "0.1.3-SNAPSHOT"
+ThisBuild / version      := "0.1.3"
 ThisBuild / scalaVersion := "3.3.7"
 
 lazy val root = project
