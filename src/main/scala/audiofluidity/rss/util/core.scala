@@ -193,7 +193,7 @@ def stripPrefixedNamespaces( root : Node ) : Node =
       val unprefixedOrTop = unprefixedNamespaceOnly(e.scope)
       if unprefixedOrTop.uri == null then // TopScope
         e.copy(scope = TopScope, child = e.child.map(n => clearPrefixedNamespaces(null, n)))
-      else if unprefixedOrTop.uri == inheritedNsUri then  
+      else if unprefixedOrTop.uri == inheritedNsUri then
         e.copy(scope = TopScope, child = e.child.map(n => clearPrefixedNamespaces(inheritedNsUri, n)))
       else // fresh unlabled namespace URI!
         e.copy(scope = unprefixedOrTop, child = e.child.map(n => clearPrefixedNamespaces(unprefixedOrTop.uri, n)))
@@ -260,3 +260,89 @@ def zeroOrOneChildElem( parent : Elem, label : String ) : Either[Seq[Elem],Optio
 extension (elem : Elem)
   def colorablyInNamespace( ns : Namespace ) = ns.prefix.fold(false)(_ == elem.prefix) || scopeContainsNamespaceLenient( ns.unprefixed, elem.scope )
 
+def normalizeNamespacePrefixes(elem: Elem, uriToPrefix : String => Option[String] ): Elem =
+  def normalizeScope(scope: NamespaceBinding): NamespaceBinding =
+    // Collect all bindings from the scope, normalizing prefixes as we go
+    def collectBindings(s: NamespaceBinding): List[(String, String)] =
+      if s == null || s == TopScope then Nil
+      else
+        val normalizedPrefix =
+          if s.uri != null then uriToPrefix(s.uri).getOrElse(s.prefix)
+          else s.prefix
+        (normalizedPrefix, s.uri) :: collectBindings(s.parent)
+
+    val bindings = collectBindings(scope)
+
+    // Remove duplicates (keep first occurrence, which is the innermost binding)
+    // Also deduplicate by both prefix and URI to avoid conflicts
+    val seenPrefixes = scala.collection.mutable.Set[String]()
+    val seenUris = scala.collection.mutable.Set[String]()
+
+    val dedupedBindings = bindings.filter: (prefix, uri) =>
+      val dominated = seenPrefixes.contains(prefix) || (uri != null && seenUris.contains(uri))
+      if !dominated then
+        seenPrefixes.add(prefix)
+        if uri != null then seenUris.add(uri)
+      !dominated
+
+    // Rebuild the NamespaceBinding chain
+    dedupedBindings.foldRight[NamespaceBinding](TopScope):
+      case ((prefix, uri), parent) => NamespaceBinding(prefix, uri, parent)
+
+  def normalizePrefix(currentPrefix: String, scope: NamespaceBinding): String =
+    if currentPrefix == null then null
+    else
+      // Find the URI for this prefix in the original scope
+      val uri = scope.getURI(currentPrefix)
+      if uri != null then
+        uriToPrefix(uri).getOrElse(currentPrefix)
+      else currentPrefix
+
+  def normalizeAttributes(attrs: MetaData, scope: NamespaceBinding): MetaData =
+    attrs match
+      case Null => Null
+      case pa: PrefixedAttribute =>
+        val uri = scope.getURI(pa.pre)
+        val newPrefix = 
+          if uri != null then 
+            uriToPrefix(uri).getOrElse(pa.pre)
+          else
+            pa.pre
+        PrefixedAttribute(
+          newPrefix,
+          pa.key,
+          pa.value,
+          normalizeAttributes(pa.next, scope)
+        )
+      case ua: UnprefixedAttribute =>
+        UnprefixedAttribute(ua.key, ua.value, normalizeAttributes(ua.next, scope))
+
+  def normalizeNode(node: Node, inheritedScope: NamespaceBinding): Node =
+    node match
+      case e: Elem =>
+        // Merge element's scope with inherited scope for resolution
+        val effectiveScope = if e.scope == null || e.scope == TopScope then inheritedScope else e.scope
+
+        // Normalize the prefix for this element
+        val newPrefix = normalizePrefix(e.prefix, effectiveScope)
+
+        // Normalize the scope (xmlns declarations)
+        val newScope = normalizeScope(effectiveScope)
+
+        // Normalize attributes
+        val newAttrs = normalizeAttributes(e.attributes, effectiveScope)
+
+        // Recursively normalize children
+        val newChildren = e.child.map(c => normalizeNode(c, newScope))
+
+        e.copy(
+          prefix = newPrefix,
+          attributes = newAttrs,
+          scope = newScope,
+          child = newChildren
+        )
+      case other => other
+
+  normalizeNode(elem, TopScope) match
+    case e: Elem => e
+    case _ => elem // Should never happen

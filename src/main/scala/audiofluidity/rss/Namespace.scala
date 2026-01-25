@@ -53,8 +53,13 @@ object Namespace:
       .dropWhile( _ == '/' ) // ignore trailing slashes
       .reverse
 
+  def normalizedCommonNamespaceForUri( uri : String ) : Option[Namespace] =
+    val uriCore = coreUri(uri)
+    val uriCoreLowerCase = uriCore.toLowerCase
+    ByUriCoreLowerCase.get(uriCoreLowerCase)
+
   /**
-    * Converts common variations on namespace URIs to canonincal versions,
+    * Converts common variations on namespace URIs to canonical versions,
     * including looking through variations in protocol (e.g. http vs https)
     * and trailing slashes, but also commonly encountered alternative or mis-written
     * URIs
@@ -123,6 +128,14 @@ object Namespace:
   def fromElemsDirect( elems : Elem* ) : Set[Namespace] = elemNamespacesDirect( Nil, elems ).toSet
 
   def fromElemDirect( elem : Elem ) : Set[Namespace] = fromElemsDirect(Seq(elem)*).toSet
+
+  def normalizePrefixesForCommon( elem : Elem, canonicalizeUri : Boolean ) : Elem = 
+    val uriToPrefix =
+      if canonicalizeUri then
+        (uri : String) => normalizedCommonNamespaceForUri(attemptCanonicalizeUri(uri)).flatMap( _.prefix )
+      else
+        (uri : String) => normalizedCommonNamespaceForUri(uri).flatMap( _.prefix )
+    util.normalizeNamespacePrefixes( elem, uriToPrefix )
 
   def excludeConflicts( namespaces : Set[Namespace] ) : ExcludingConflicts =
     val prefixGrouped = namespaces.groupBy( _.prefix )
