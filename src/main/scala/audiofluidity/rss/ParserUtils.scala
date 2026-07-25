@@ -71,7 +71,7 @@ trait ParserUtils:
   def allChildElemsAsReverseExtras( elem : Elem )( using pconfig : Parser.Config ) : ( Seq[String], List[Element.Extra] ) =
     val childElems = elem.child.collect{ case e : Elem => e }
     childElems.foldLeft( Tuple2( Vector.empty[String], Nil : List[Element.Extra] ) ): (accum, next) =>
-      val ( warnings, extra ) = attemptFillInExtra( elem )
+      val ( warnings, extra ) = attemptFillInExtra( next )
       ( accum(0) ++ warnings, extra :: accum(1) )
 
   def reverseExtrasExcept( nonExtra : Vector[Elem] )( nlist : List[Node] )( using pconfig : Parser.Config ) : ( Seq[String], List[Element.Extra] ) =

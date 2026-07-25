@@ -34,7 +34,7 @@ object Synthetic:
               case Element.Iffy.Synthetic.KnownType.ItemUpdateFeed => fromItemUpdateFeedSynthetic( warnings )( typeElem, synthetic )
               case Element.Iffy.Synthetic.KnownType.UpdateAnnouncement => fromUpdateAnnouncementSynthetic( warnings )( typeElem, synthetic )
               case Element.Iffy.Synthetic.KnownType.UpdateCumulation => fromUpdateCumulationSynthetic( warnings )( typeElem, synthetic )
-          case None => ( Seq("Missing type."), None )
+          case None => ( Seq(s"Unknown synthetic type: ${typeElem.value}"), None )
 
   private def fromItemUpdateFeedSynthetic( warnings : mutable.ReusableBuilder[String, Vector[String]] )( typeElement : Element.Iffy.Type, synthetic : Element.Iffy.Synthetic ) : ( Seq[String], Option[Synthetic] ) =
     val used     = Vector.newBuilder[Element[?]]
@@ -104,7 +104,7 @@ object Synthetic:
         def sameEnoughLink( link : Element.Atom.Link ) : Boolean = link.href == sourceLink.href && link.rel == sourceLink.rel
         item match
           case link : Element.Atom.Link             => sameEnoughLink(link)
-          case provenance : Element.Iffy.Provenance => isSimpleSourceLink(provenance)
+          case provenance : Element.Iffy.Provenance => provenance.linksAndProvenances.size == 1 && isSimpleSourceLink(provenance.linksAndProvenances.head)
       val rawAnnouncementProvenances = updateAnnouncements.map( _.provenance ).flatten
       ( mbDestinationFeedUrl.fold(false)(dfu => dfu == sourceFeedUrl), rawAnnouncementProvenances.isEmpty ) match
         case ( true, true )  => None
