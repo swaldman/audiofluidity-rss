@@ -165,43 +165,47 @@ object LenientRfc1123:
       case 2 => val n = y.toInt; if n < pivot then f"${2000 + n}%04d" else f"${1900 + n}%04d"
       case _ => y
 
+  /**
+   * Each branch is an Option: None means "this shape does not apply, try the next one".
+   * Written as an orElse chain rather than early returns, both because `return` inside a
+   * closure is a non-local return (no longer supported) and because the chain makes the
+   * precedence -- numeric, then abbreviation, then IANA id -- the shape of the code.
+   */
   private def normalizeZone(in: String, cfg: Config): String =
     val table = BaseZoneAbbrevs ++ cfg.zoneOverrides
 
     // Numeric offset wins -- it is unambiguous, so try it before any name.
-    TrailingOffset.findFirstMatchIn(in) match
-      case Some(m) =>
+    def numeric: Option[String] =
+      TrailingOffset.findFirstMatchIn(in).map { m =>
         val sign = m.group(1)
         val hh   = f"${m.group(2).toInt}%02d"
         val mm   = Option(m.group(3)).getOrElse("00")
-        return in.substring(0, m.start).trim + s" $sign$hh$mm"
-      case None => ()
+        in.substring(0, m.start).trim + s" $sign$hh$mm"
+      }
 
-    // Known abbreviation -> fixed offset.
-    TrailingAbbrev.findFirstMatchIn(in) match
-      case Some(m) =>
-        val key = m.group(1).toUpperCase(Locale.ROOT)
-        table.get(key).foreach { off =>
-          return in.substring(0, m.start).trim + " " + off
-        }
-      case None => ()
+    // Known abbreviation -> fixed offset. An *unknown* abbreviation yields None, so the
+    // IANA branch below still gets its chance at the same tail.
+    def abbrev: Option[String] =
+      for
+        m   <- TrailingAbbrev.findFirstMatchIn(in)
+        off <- table.get(m.group(1).toUpperCase(Locale.ROOT))
+      yield
+        in.substring(0, m.start).trim + " " + off
 
     // IANA zone id -> offset valid on that date. Requires the head to parse first,
     // so we defer: leave the id in place and let the ZoneId branch of the chain take it.
-    TrailingZoneId.findFirstMatchIn(in) match
-      case Some(m) =>
-        val id = m.group(1)
-        if Try(ZoneId.of(id)).isSuccess then
-          // Resolve against the local part so DST is applied for the right date.
-          val head = in.substring(0, m.start).trim
-          return Try {
-            val ldt = LocalDateTime.parse(head, LocalPart)
-            val off = ZoneId.of(id).getRules.getOffset(ldt)
-            head + " " + off.getId.replace(":", "").replace("Z", "+0000")
-          }.getOrElse(in)
-      case None => ()
+    def ianaId: Option[String] =
+      TrailingZoneId.findFirstMatchIn(in).filter(m => Try(ZoneId.of(m.group(1))).isSuccess).map { m =>
+        // Resolve against the local part so DST is applied for the right date.
+        val head = in.substring(0, m.start).trim
+        Try {
+          val ldt = LocalDateTime.parse(head, LocalPart)
+          val off = ZoneId.of(m.group(1)).getRules.getOffset(ldt)
+          head + " " + off.getId.replace(":", "").replace("Z", "+0000")
+        }.getOrElse(in)
+      }
 
-    in
+    numeric.orElse(abbrev).orElse(ianaId).getOrElse(in)
   end normalizeZone
 
   // ---------------------------------------------------------------- formatters
