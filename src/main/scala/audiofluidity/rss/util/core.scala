@@ -63,6 +63,9 @@ def attemptLenientParsePubDate( str : String ) : Try[ZonedDateTime] =
 def parseRssOrAtomDate( str : String ) : Try[ZonedDateTime] =
   attemptLenientParsePubDate(str).orElse(Try(atom.parseDateConstruct(str)))
 
+def parseRssOrAtomDateToInstant( str : String ) : Try[Instant] =
+  attemptLenientParsePubDate(str).orElse(Try(atom.parseDateConstruct(str))).map( Instant.from )
+
 def formatPubDate( zdt : ZonedDateTime ) : String = RssDateTimeFormatter.format( zdt )
 
 def roundToSecond( instant : Instant ) : Instant =
