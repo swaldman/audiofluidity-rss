@@ -1,7 +1,8 @@
 package audiofluidity.rss.atom
 
 import java.time.{ZonedDateTime,ZoneId}
-import java.time.format.{DateTimeFormatter,DateTimeParseException}
+import java.time.format.{DateTimeFormatter,DateTimeFormatterBuilder,DateTimeParseException}
+import scala.util.Try
 import scala.xml.*
 import audiofluidity.rss.{BadAtomXml,ConflictingNamespaces,Element,Namespace}
 import audiofluidity.rss.util.stripPrefixedNamespaces
@@ -21,13 +22,38 @@ private def findPubDate(entryElem : Elem) : ZonedDateTime =
   val isoOffsetOrInstant =
     (mbUniqueText( entryElem, "published" ) orElse mbUniqueText( entryElem, "updated")).getOrElse:
       throw new BadAtomXml(s"Found neither a 'published' nor 'updated' element in entry.")
-  parseDateConstruct(isoOffsetOrInstant)    
+  parseDateConstruct(isoOffsetOrInstant)
+
+
+// Thanks Claude!
+//
+// we could consttuct this from the pattern
+//
+//  "yyyy-MM-dd HH:mm:ss VV")
+//
+// but it's a bit more instructive and adaptable this way
+private val SpacedZoneName : DateTimeFormatter =
+  new DateTimeFormatterBuilder()
+    .parseCaseInsensitive()
+    .append(DateTimeFormatter.ISO_LOCAL_DATE)
+    .appendLiteral(' ')
+    .append(DateTimeFormatter.ISO_LOCAL_TIME)
+    .appendLiteral(' ')
+    .appendZoneOrOffsetId()   // accepts "UTC", "Z", "+02:00", "Europe/Paris"
+    .toFormatter()
+
+private val DateTimeFormattersToTry =
+  List(
+    DateTimeFormatter.ISO_OFFSET_DATE_TIME,
+    DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.systemDefault()),
+    SpacedZoneName
+  )
 
 def parseDateConstruct( isoOffsetOrInstant : String ) : ZonedDateTime =
-  try
-    ZonedDateTime.parse( isoOffsetOrInstant, DateTimeFormatter.ISO_OFFSET_DATE_TIME )
-  catch  
-    case dtpe : DateTimeParseException => ZonedDateTime.from( DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.systemDefault()).parse(isoOffsetOrInstant) )
+  DateTimeFormattersToTry.iterator                                           // lazy, this just returns an interator that wraps next in a function, doesn't yet execute anything
+    .flatMap(f => Try(ZonedDateTime.parse(isoOffsetOrInstant, f)).toOption)  // option here is acting as a Collection, None is an empty Collection
+    .nextOption()                                                            // this returns immediately, not executing the rest of the iterator, if there's a value
+    .getOrElse(throw new DateTimeParseException(s"Unparseable date construct: $isoOffsetOrInstant", isoOffsetOrInstant, 0))
 
 private val DefaultAuthorEmail = "nospam@dev.null"
 
