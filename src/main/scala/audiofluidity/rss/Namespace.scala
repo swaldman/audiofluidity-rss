@@ -2,7 +2,7 @@ package audiofluidity.rss
 
 import com.mchange.conveniences.string.*
 import scala.annotation.tailrec
-import scala.xml.{Elem,NamespaceBinding,TopScope}
+import scala.xml.{Elem,NamespaceBinding,Node,TopScope}
 import audiofluidity.rss.util.scopeContainsNamespaceLenient
 
 object Namespace:
@@ -108,24 +108,34 @@ object Namespace:
   def byPrefix( pfx : Option[String] ) : Option[Namespace] = ByPrefix.get( pfx )
   def byPrefix( pfx : String )         : Option[Namespace] = byPrefix( Some(pfx) )
 
+  // These accumulate into a Set rather than a List, so that the many duplicate bindings
+  // a document contains collapse as they are encountered. Accumulating into a List and
+  // deduplicating only at the end costs one live Namespace (and one live Option for its
+  // prefix, and one live cons cell) per binding per node, which for a large merge means
+  // millions of live objects to describe a few dozen distinct namespaces.
   @tailrec
-  private def namespaces( accum : List[Namespace], binding : NamespaceBinding ) : List[Namespace] =
-    if binding == TopScope || binding == null then accum else namespaces( Namespace(binding.prefix, binding.uri ) :: accum, binding.parent)
+  private def namespaces( accum : Set[Namespace], binding : NamespaceBinding ) : Set[Namespace] =
+    if binding == TopScope || binding == null then accum else namespaces( accum + Namespace(binding.prefix, binding.uri ), binding.parent)
 
-  private def namespaces( accum : List[Namespace], bindingSeq : Seq[NamespaceBinding] ) : List[Namespace] =
-    bindingSeq.foldLeft( accum )( (soFar, next) => namespaces( soFar, next ) )
+  private def namespaces( accum : Set[Namespace], bindingSeq : IterableOnce[NamespaceBinding] ) : Set[Namespace] =
+    bindingSeq.iterator.foldLeft( accum )( (soFar, next) => namespaces( soFar, next ) )
 
-  private def elemNamespacesRecursive( accum : List[Namespace], elems : Seq[Elem] ) : List[Namespace] =
-    elems.foldLeft( accum )( (soFar, next) => namespaces( soFar, next.descendant_or_self.map( _.scope ) ) )
+  // scala.xml's descendant_or_self materializes the whole subtree as a List, so walk it
+  // lazily instead. Order is irrelevant, we are only collecting into a Set.
+  private def nodesRecursive( node : Node ) : Iterator[Node] =
+    Iterator.single( node ) ++ node.child.iterator.flatMap( nodesRecursive )
 
-  private def elemNamespacesDirect( accum : List[Namespace], elems : Seq[Elem] ) : List[Namespace] =
-    elems.foldLeft( accum )( (soFar, next) => namespaces( soFar, next.map( _.scope ) ) )
+  private def elemNamespacesRecursive( accum : Set[Namespace], elems : Seq[Elem] ) : Set[Namespace] =
+    elems.foldLeft( accum )( (soFar, next) => namespaces( soFar, nodesRecursive( next ).map( _.scope ) ) )
 
-  def fromElemsRecursive( elems : Elem* ) : Set[Namespace] = elemNamespacesRecursive( Nil, elems ).toSet
+  private def elemNamespacesDirect( accum : Set[Namespace], elems : Seq[Elem] ) : Set[Namespace] =
+    elems.foldLeft( accum )( (soFar, next) => namespaces( soFar, next.iterator.map( _.scope ) ) )
+
+  def fromElemsRecursive( elems : Elem* ) : Set[Namespace] = elemNamespacesRecursive( Set.empty, elems )
 
   def fromElemRecursive( elem : Elem ) : Set[Namespace] = fromElemsRecursive(Seq(elem)*).toSet
 
-  def fromElemsDirect( elems : Elem* ) : Set[Namespace] = elemNamespacesDirect( Nil, elems ).toSet
+  def fromElemsDirect( elems : Elem* ) : Set[Namespace] = elemNamespacesDirect( Set.empty, elems )
 
   def fromElemDirect( elem : Elem ) : Set[Namespace] = fromElemsDirect(Seq(elem)*).toSet
 
