@@ -50,26 +50,60 @@ def formatRFC3339ToSecond( instant : Instant ) : String =
 def formatRFC3339ToSecond( zdt : ZonedDateTime ) : String =
   DateTimeFormatter.ISO_INSTANT.format( roundToSecond( zdt ) )
 
+object RssParseFailure:
+  case class BaseElementNotRss(baseElem : Elem) extends RssParseFailure:
+     override def toString() = "Base element not RSS element: " + baseElem
+  case class ZeroOrMultipleChannelElems(numElems : Int) extends RssParseFailure:
+     override def toString() = "Should contain precisely one channel element, contains " + numElems
+  case class GuidNotFound(guid : String) extends RssParseFailure:
+     override def toString() = s"Item with guid '$guid' not found!"
+  case class MultipleItemsFoundForGuid(numItems : Int, guid : String) extends RssParseFailure:
+     override def toString() = s"Multiple ($numItems) items with guid '$guid' found!"
+  case class UnexpectedNodesFound(unexpected : NodeSeq) extends RssParseFailure:
+     override def toString() = s"""Found the following unexpected nodes: ${unexpected.mkString(", ")}"""
+sealed trait RssParseFailure
+
+import RssParseFailure.*
+
 /**
   * Convert an RSS feed into a similar feed except containing just a single item.
   *
   * @param rssElem the rss to recreate for a single item
   * @param retainGuid the guid of the single item
   * @param nonItemChannelChildrenFilter which channel-level elements to include, by default all, @see SkipUnstableChannelElements
-  * @return either the single element RSS ot a String explaining why it could not be produced
+  * @return either the single element RSS or a String explaining why it could not be produced
   */
 def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFilter : Elem => Boolean = _ => true, nonChannelRssChildrenFilter : Elem => Boolean = _ => true ) : Either[String,Elem] =
+  singleItemRssStructured( rssElem, retainGuid, nonItemChannelChildrenFilter, nonChannelRssChildrenFilter ) match
+    case Left(singleItemRssFailure) => Left(singleItemRssFailure.toString())
+    case Right(elem) => Right(elem)
+
+private def hasGuid( itemElem : Node, guid : String ) : Boolean =
+  itemElem match
+    case elem : Elem => hasGuid(elem, guid)
+    case _           => false
+
+private def hasGuid( itemElem : Elem, guid : String ) : Boolean =
+  val guidElems = itemElem \ "guid"
+  guidElems.exists( _.text.trim() == guid )
+
+/**
+  * Convert an RSS feed into a similar feed except containing just a single item.
+  *
+  * @param rssElem the rss to recreate for a single item
+  * @param retainGuid the guid of the single item
+  * @param nonItemChannelChildrenFilter which channel-level elements to include, by default all, @see SkipUnstableChannelElements
+  * @return either the single element RSS or a RssParseFailure explaining why it could not be produced
+  */
+def singleItemRssStructured( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFilter : Elem => Boolean = _ => true, nonChannelRssChildrenFilter : Elem => Boolean = _ => true ) : Either[RssParseFailure,Elem] =
   if rssElem.label != "rss" then
-    Left("Base element not RSS element: " + rssElem)
+    Left(BaseElementNotRss(rssElem))
   else
     val channelElems = rssElem.child.collect { case elem : Elem if elem.label == "channel" => elem }
     if channelElems.size != 1 then
-      Left("Should contain precisely one channele element, contains " + channelElems.size)
+      Left(ZeroOrMultipleChannelElems(channelElems.size))
     else
       val channelElem = channelElems.head
-      def hasGuid( itemElem : Elem, guid : String ) : Boolean =
-        val guidElems = itemElem \ "guid"
-        guidElems.exists( _.text.trim() == guid )
       val filteredChildren = channelElem.child.filter: node =>
         node match
           case elem : Elem if elem.label == "item" => hasGuid(elem, retainGuid)
@@ -78,7 +112,7 @@ def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFi
       val items = filteredChildren.collect { case elem : Elem if elem.label == "item" => elem }
       items.size match
         case 0 =>
-          Left(s"Item with guid '$retainGuid' not found!")
+          Left(GuidNotFound(retainGuid))
         case 1 =>
           val filteredChannelElem =
             channelElem.copy( child = filteredChildren )
@@ -90,7 +124,125 @@ def singleItemRss( rssElem : Elem, retainGuid : String, nonItemChannelChildrenFi
               case other => other
           Right( rssElem.copy( child = newRssChildren ) )
         case n =>
-          Left(s"Multiple ($n) items with guid '$retainGuid' found!")
+          Left(MultipleItemsFoundForGuid(n,retainGuid))
+
+opaque type ItemElemSeq = NodeSeq
+
+def asItemElemSeq(ns : NodeSeq) : Either[UnexpectedNodesFound,ItemElemSeq] =
+  val unexpectedOpts =
+    ns.collect:
+      case elem : Elem if elem.label == "item" => None
+      case node                                => Some(node)
+  val unexpected = unexpectedOpts.flatten
+  if unexpected.size > 0 then Left(UnexpectedNodesFound(unexpected)) else Right(ns)
+
+extension (ies : ItemElemSeq)
+  def toNodeSeq : NodeSeq = ies
+  def toElemSeq : Seq[Elem] = Seq.from(ies).map( _.asInstanceOf[Elem] )
+
+def itemElemsWithGuidPermissive( rssElem : Elem, guid : String ) : Either[UnexpectedNodesFound,ItemElemSeq] = asItemElemSeq((rssElem \\ "item").filter(elem => hasGuid(elem, guid)))
+
+/**
+  * Repair a feed in which some guids are shared by multiple items. The feed is otherwise
+  * returned unchanged. For each guid borne by more than one channel-level item, `choose`
+  * is called with all the items sharing that guid (in document order) and the item it returns
+  * is the only one retained. If the chosen item is one of the duplicates, it stays in its original
+  * position; otherwise it replaces the first duplicate. Items with no guid are never touched.
+  *
+  * @param rssElem the rss to repair
+  * @param choose picks the item to keep from a group (of size two or more) of items sharing a guid
+  * @return the repaired RSS, or an RssParseFailure if rssElem is not a well-formed RSS document
+  */
+def stripItemsWithDuplicateGuids( rssElem : Elem, choose : ItemElemSeq => Elem ) : Either[RssParseFailure,Elem] =
+  if rssElem.label != "rss" then
+    Left(BaseElementNotRss(rssElem))
+  else
+    val channelElems = rssElem.child.collect { case elem : Elem if elem.label == "channel" => elem }
+    if channelElems.size != 1 then
+      Left(ZeroOrMultipleChannelElems(channelElems.size))
+    else
+      val channelElem = channelElems.head
+
+      def guidsOf( item : Elem ) : Seq[String] = (item \ "guid").map( _.text.trim() ).distinct
+
+      val items = channelElem.child.collect { case elem : Elem if elem.label == "item" => elem }
+
+      // guid -> items bearing it, in document order; an item with several guid elements joins several groups
+      val groups = scala.collection.mutable.LinkedHashMap.empty[String,Vector[Elem]]
+      items.foreach: item =>
+        guidsOf(item).foreach: g =>
+          groups.update( g, groups.getOrElse(g, Vector.empty) :+ item )
+
+      // reference identity, so that structurally-equal duplicates are still distinguished
+      val dropped = new java.util.IdentityHashMap[Node,Node]()
+      val replacements = new java.util.IdentityHashMap[Node,Node]() // first duplicate -> foreign chosen item
+      groups.foreach: (_, dups) =>
+        if dups.size > 1 then
+          val chosen = choose(asItemElemSeq(dups).getOrElse(throw new RuntimeException("Internal Error: We've already verified that these are items: " + dups.mkString(", "))))
+          dups.foreach: dup =>
+            if (dup ne chosen) then dropped.put(dup, dup)
+          if !dups.exists( _ eq chosen ) then
+            replacements.put(dups.head, chosen)
+
+      val newChannelChildren =
+        channelElem.child.flatMap: node =>
+          if replacements.containsKey(node) then Seq(replacements.get(node))
+          else if dropped.containsKey(node) then Seq.empty
+          else Seq(node)
+
+      val newRssChildren =
+        rssElem.child.map: node =>
+          node match
+            case elem : Elem if elem eq channelElem => channelElem.copy( child = newChannelChildren )
+            case other => other
+      Right( rssElem.copy( child = newRssChildren ) )
+
+private def duplicateGuidsChooseFirstItem( ies : ItemElemSeq ) : Elem = ies.toElemSeq.head // we can assume ies will have at least two items
+
+def retainFirstItemsWithDuplicateGuids( rssElem : Elem ) : Either[RssParseFailure,Elem] = 
+  stripItemsWithDuplicateGuids( rssElem, duplicateGuidsChooseFirstItem )
+
+/**
+  * Like [[stripItemsWithDuplicateGuids]], but repairs only the one known guid `duplicatedGuid`.
+  * Channel-level items bearing any other guid are left alone, even if they are duplicated.
+  *
+  * If exactly one item bears the guid, there is nothing to repair, and the feed is returned unchanged
+  * without calling `choose`.
+  *
+  * @return the repaired RSS, or an RssParseFailure if rssElem is not well-formed RSS or no item bears the guid
+  */
+def stripItemsWithDuplicatedGuid( rssElem : Elem, duplicatedGuid : String, choose : ItemElemSeq => Elem ) : Either[RssParseFailure,Elem] =
+  if rssElem.label != "rss" then
+    Left(BaseElementNotRss(rssElem))
+  else
+    val channelElems = rssElem.child.collect { case elem : Elem if elem.label == "channel" => elem }
+    if channelElems.size != 1 then
+      Left(ZeroOrMultipleChannelElems(channelElems.size))
+    else
+      val channelElem = channelElems.head
+      val dups = channelElem.child.collect { case elem : Elem if elem.label == "item" && hasGuid(elem, duplicatedGuid) => elem }
+      dups.size match
+        case 0 => Left(GuidNotFound(duplicatedGuid))
+        case 1 => Right(rssElem)
+        case _ =>
+          val chosen = choose(asItemElemSeq(dups).getOrElse(throw new RuntimeException("Internal Error: We've already verified that these are items: " + dups.mkString(", "))))
+          val chosenIsDup = dups.exists( _ eq chosen )
+          val first = dups.head
+          val newChannelChildren =
+            channelElem.child.flatMap: node =>
+              node match
+                case elem : Elem if (elem eq first) && !chosenIsDup => Seq(chosen)
+                case elem : Elem if (dups.exists( _ eq elem )) && !(elem eq chosen) => Seq.empty
+                case other => Seq(other)
+          val newRssChildren =
+            rssElem.child.map: node =>
+              node match
+                case elem : Elem if elem eq channelElem => channelElem.copy( child = newChannelChildren )
+                case other => other
+          Right( rssElem.copy( child = newRssChildren ) )
+
+def retainFirstItemWithDuplicatedGuid( rssElem : Elem, duplicatedGuid : String ) : Either[RssParseFailure,Elem] = 
+  stripItemsWithDuplicatedGuid( rssElem, duplicatedGuid, duplicateGuidsChooseFirstItem )
 
 /**
   * A filter predicate intended for use in the [[singleItemRss]] function.
